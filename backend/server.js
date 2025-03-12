@@ -25,7 +25,7 @@ const db = mysql.createConnection({
 db.connect((err) => {
   if (err) {
     console.error('Erreur de connexion à la base de données :', err);
-    process.exit(1); // Arrête l'application si la connexion échoue
+    process.exit(1);
   }
   console.log('Connecté à la base de données, threadId :', db.threadId);
 });
@@ -36,12 +36,12 @@ app.get('/', (req, res) => {
 });
 
 // Route pour l'inscription (Register)
+// Si vous souhaitez permettre la saisie d'une bio dès l'inscription, ajoutez "bio" dans req.body et dans la requête SQL.
 app.post('/register', (req, res) => {
-  const { username, email, password, role } = req.body;
+  const { username, email, password, bio, role } = req.body;
   if (!username || !email || !password) {
     return res.status(400).json({ error: 'Les champs username, email et password sont obligatoires.' });
   }
-  // Vérifier si l'email est déjà utilisé
   const checkQuery = 'SELECT * FROM users WHERE email = ?';
   db.query(checkQuery, [email], (err, results) => {
     if (err) {
@@ -51,14 +51,14 @@ app.post('/register', (req, res) => {
     if (results.length > 0) {
       return res.status(400).json({ error: 'Cet email est déjà utilisé.' });
     }
-    // Hachage du mot de passe
     bcrypt.hash(password, saltRounds, (err, hash) => {
       if (err) {
         console.error(err);
         return res.status(500).json({ error: 'Erreur lors du hachage du mot de passe.' });
       }
-      const insertQuery = 'INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)';
-      db.query(insertQuery, [username, email, hash, role || 'reader'], (err, result) => {
+      const insertQuery = 'INSERT INTO users (username, email, password, bio, role) VALUES (?, ?, ?, ?, ?)';
+      // La bio est optionnelle, si non fournie on insère une chaîne vide
+      db.query(insertQuery, [username, email, hash, bio || '', role || 'reader'], (err, result) => {
         if (err) {
           console.error(err);
           return res.status(500).json({ error: 'Erreur lors de l\'insertion dans la base de données.' });
@@ -85,7 +85,6 @@ app.post('/login', (req, res) => {
       return res.status(401).json({ error: 'Email ou mot de passe incorrect.' });
     }
     const user = results[0];
-    // Comparaison des mots de passe
     bcrypt.compare(password, user.password, (err, isMatch) => {
       if (err) {
         console.error(err);
@@ -94,14 +93,13 @@ app.post('/login', (req, res) => {
       if (!isMatch) {
         return res.status(401).json({ error: 'Email ou mot de passe incorrect.' });
       }
-      // Génération d'un token JWT valable 1 heure
       const token = jwt.sign({ id: user.id, email: user.email }, jwtSecret, { expiresIn: '1h' });
       res.json({ message: 'Connexion réussie', token });
     });
   });
 });
 
-// Middleware de vérification du token pour sécuriser les routes
+// Middleware de vérification du token
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   if (!authHeader) {
@@ -117,22 +115,44 @@ const verifyToken = (req, res, next) => {
   });
 };
 
-// Exemple de route protégée (Profil de l'utilisateur)
-app.get('/profile', verifyToken, (req, res) => {
-  const query = 'SELECT id, username, email, role FROM users WHERE id = ?';
-  db.query(query, [req.user.id], (err, results) => {
+// Route protégée pour récupérer le compte complet de l'utilisateur connecté
+// Cette route retourne le profil (avec bio), ses posts et ses commentaires.
+app.get('/account', verifyToken, (req, res) => {
+  const userId = req.user.id;
+  const userQuery = 'SELECT id, username, email, bio, role FROM users WHERE id = ?';
+  const postsQuery = 'SELECT * FROM posts WHERE user_id = ?';
+  const commentsQuery = 'SELECT * FROM comments WHERE user_id = ?';
+  
+  db.query(userQuery, [userId], (err, userResults) => {
     if (err) {
       console.error(err);
       return res.status(500).json({ error: 'Erreur lors de la récupération du profil.' });
     }
-    if (results.length === 0) {
+    if (userResults.length === 0) {
       return res.status(404).json({ error: 'Utilisateur non trouvé.' });
     }
-    res.json(results[0]);
+    const profile = userResults[0];
+    db.query(postsQuery, [userId], (err, postsResults) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Erreur lors de la récupération des posts.' });
+      }
+      db.query(commentsQuery, [userId], (err, commentsResults) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ error: 'Erreur lors de la récupération des commentaires.' });
+        }
+        res.json({
+          profile,
+          posts: postsResults,
+          comments: commentsResults
+        });
+      });
+    });
   });
 });
 
-// Exemple de route pour récupérer les posts
+// Route pour récupérer tous les posts (route existante)
 app.get('/posts', (req, res) => {
   const sql = 'SELECT * FROM posts';
   db.query(sql, (err, data) => {
@@ -140,6 +160,55 @@ app.get('/posts', (req, res) => {
       console.error(err);
       return res.status(500).json({ error: 'Erreur lors de la récupération des posts.' });
     }
+    res.json(data);
+  });
+});
+
+// Routes existantes pour les catégories, commentaires, tags, associations et utilisateurs…
+app.get('/categories', (req, res) => {
+  const sql = 'SELECT * FROM categories ORDER BY name ASC';
+  db.query(sql, (err, data) => {
+    if (err) return res.status(500).json({ error: err });
+    res.json(data);
+  });
+});
+
+app.get('/comments', (req, res) => {
+  const sql = 'SELECT * FROM comments';
+  db.query(sql, (err, data) => {
+    if (err) return res.status(500).json({ error: err });
+    res.json(data);
+  });
+});
+
+app.get('/tags', (req, res) => {
+  const sql = 'SELECT * FROM tags';
+  db.query(sql, (err, data) => {
+    if (err) return res.status(500).json({ error: err });
+    res.json(data);
+  });
+});
+
+app.get('/posts_tags', (req, res) => {
+  const sql = 'SELECT * FROM posts_tags';
+  db.query(sql, (err, data) => {
+    if (err) return res.status(500).json({ error: err });
+    res.json(data);
+  });
+});
+
+app.get('/posts_categories', (req, res) => {
+  const sql = 'SELECT * FROM posts_categories';
+  db.query(sql, (err, data) => {
+    if (err) return res.status(500).json({ error: err });
+    res.json(data);
+  });
+});
+
+app.get('/users', (req, res) => {
+  const sql = 'SELECT * FROM users';
+  db.query(sql, (err, data) => {
+    if (err) return res.status(500).json({ error: err });
     res.json(data);
   });
 });
