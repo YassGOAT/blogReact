@@ -25,7 +25,7 @@ db.connect((err) => {
   console.log('Connecté à la base de données, threadId :', db.threadId);
 });
 
-// Route de test
+// Route racine
 app.get('/', (req, res) => {
   res.json('Backend du site Blog');
 });
@@ -39,7 +39,7 @@ app.get('/posts', (req, res) => {
   });
 });
 
-// Récupérer tous les categories
+// Récupérer toutes les catégories
 app.get('/categories', (req, res) => {
   const sql = 'SELECT * FROM categories';
   db.query(sql, (err, data) => {
@@ -48,7 +48,7 @@ app.get('/categories', (req, res) => {
   });
 });
 
-// Récupérer toutes les catégories triées par ordre alphabétique
+// Récupérer tous les commentaires
 app.get('/comments', (req, res) => {
   const sql = 'SELECT * FROM comments';
   db.query(sql, (err, data) => {
@@ -57,38 +57,44 @@ app.get('/comments', (req, res) => {
   });
 });
 
-// Récupérer toutes les tags
+// Récupérer tous les tags
 app.get('/tags', (req, res) => {
-    const sql = 'SELECT * FROM tags';
-    db.query(sql, (err, data) => {
-      if (err) return res.status(500).json({ error: err });
-      res.json(data);
-    });
+  const sql = 'SELECT * FROM tags';
+  db.query(sql, (err, data) => {
+    if (err) return res.status(500).json({ error: err });
+    res.json(data);
   });
+});
 
-// Récupérer toutes les posts_tags
+// Récupérer toutes les associations posts_tags
 app.get('/posts_tags', (req, res) => {
-    const sql = 'SELECT * FROM posts_tags';
-    db.query(sql, (err, data) => {
-      if (err) return res.status(500).json({ error: err });
-      res.json(data);
-    });
+  const sql = 'SELECT * FROM posts_tags';
+  db.query(sql, (err, data) => {
+    if (err) return res.status(500).json({ error: err });
+    res.json(data);
   });
+});
 
-// Récupérer toutes les posts_categories
+// Récupérer toutes les associations posts_categories
 app.get('/posts_categories', (req, res) => {
-    const sql = 'SELECT * FROM posts_categories';
-    db.query(sql, (err, data) => {
-      if (err) return res.status(500).json({ error: err });
-      res.json(data);
-    });
+  const sql = 'SELECT * FROM posts_categories';
+  db.query(sql, (err, data) => {
+    if (err) return res.status(500).json({ error: err });
+    res.json(data);
   });
+});
 
-// Récupérer toutes les users
+// Récupérer tous les utilisateurs
 app.get('/users', (req, res) => {
-    const sql = 'SELECT * FROM users';
-    db.query(sql, (err, data) => {
-      if (err) return res.status(500).json({ error: err });
-      res.json(data);
-    });
+  const sql = 'SELECT * FROM users';
+  db.query(sql, (err, data) => {
+    if (err) return res.status(500).json({ error: err });
+    res.json(data);
   });
+});
+
+// Démarrage du serveur
+const PORT = 8081;
+app.listen(PORT, () => {
+  console.log(`Serveur démarré sur le port ${PORT}`);
+});
