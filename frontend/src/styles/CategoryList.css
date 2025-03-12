@@ -1,0 +1,23 @@
+.categorylist-container {
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .categorylist-container h2 {
+    margin-bottom: 20px;
+  }
+  
+  .categorylist-container ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .categorylist-container li {
+    margin-bottom: 10px;
+  }
+  
+  .categorylist-container .link {
+    color: #007bff;
+  }
+  

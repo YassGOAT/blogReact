@@ -1,0 +1,15 @@
+.postdetails-container {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .postdetails-container h2 {
+    margin-bottom: 15px;
+  }
+  
+  .postdetails-container p {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  

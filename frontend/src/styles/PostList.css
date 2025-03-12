@@ -1,0 +1,32 @@
+.postlist-container {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .postlist-container h2 {
+    margin-bottom: 20px;
+  }
+  
+  .postlist-container ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .postlist-container li {
+    margin-bottom: 10px;
+  }
+  
+  .postlist-container .link {
+    color: #007bff;
+  }
+  
+  .postlist-container .btn {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 15px;
+    background-color: #28a745;
+    color: #fff;
+    border-radius: 5px;
+  }
+  
