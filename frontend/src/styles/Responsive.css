@@ -1,58 +1,25 @@
-/* src/styles/responsive.css */
-
-/* Styles globaux pour les écrans jusqu'à 768px (mobile) */
 @media (max-width: 768px) {
     body {
       padding: 5px;
       font-size: 14px;
     }
-    
-    .app-container {
-      padding: 5px;
-    }
-    
     .navbar, .footer {
       padding: 10px;
     }
-    
     .navbar .menu a {
       margin-left: 8px;
       font-size: 14px;
     }
-    
     .home-container h1 {
       font-size: 28px;
     }
-    
     .content {
       padding: 10px;
     }
-    
-    .form, 
-    .login-container, 
-    .register-container, 
-    .account-container,
+    .form, .login-container, .register-container, .account-container,
     .postlist-container {
       padding: 10px;
       max-width: 100%;
     }
   }
-  
-  /* Styles pour les écrans moyens entre 769px et 1024px */
-  @media (min-width: 769px) and (max-width: 1024px) {
-    body {
-      font-size: 15px;
-    }
-    
-    .navbar .menu a {
-      margin-left: 10px;
-      font-size: 15px;
-    }
-    
-    .home-container h1 {
-      font-size: 32px;
-    }
-  }
-  
-  /* Vous pouvez ajouter d'autres media queries pour des tailles d'écran spécifiques */
   

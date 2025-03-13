@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// src/components/Posts/AddPost.js
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/AddPost.css';
 
@@ -6,7 +7,17 @@ function AddPost() {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [categories, setCategories] = useState([]);
   const [error, setError] = useState('');
+
+  // Récupérer la liste des catégories
+  useEffect(() => {
+    fetch('http://localhost:8081/categories')
+      .then((res) => res.json())
+      .then((data) => setCategories(data))
+      .catch((err) => console.error(err));
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,11 +30,11 @@ function AddPost() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ title, content })
+        body: JSON.stringify({ title, content, category_id: categoryId })
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Erreur lors de l\'ajout du post.');
+        setError(data.error || 'Erreur lors de la création du post.');
       } else {
         navigate('/posts');
       }
@@ -34,7 +45,7 @@ function AddPost() {
 
   return (
     <div className="addpost-container">
-      <h2>Ajouter un Post</h2>
+      <h2>Créer un Post</h2>
       {error && <p className="error">{error}</p>}
       <form onSubmit={handleSubmit} className="form">
         <div className="form-group">
@@ -56,7 +67,23 @@ function AddPost() {
             className="textarea"
           />
         </div>
-        <button type="submit" className="btn">Ajouter</button>
+        <div className="form-group">
+          <label>Catégorie :</label>
+          <select
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            className="input"
+            required
+          >
+            <option value="">Sélectionnez une catégorie</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button type="submit" className="btn">Créer le Post</button>
       </form>
     </div>
   );

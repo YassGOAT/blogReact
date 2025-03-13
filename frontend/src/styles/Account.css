@@ -4,12 +4,29 @@
     margin: 0 auto;
   }
   
-  .account-container h2 {
-    text-align: center;
+  .account-tabs {
+    display: flex;
+    justify-content: center;
     margin-bottom: 20px;
   }
   
-  .account-container .section {
-    margin-bottom: 20px;
+  .account-tabs button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #ddd;
+    margin: 0 5px;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .account-tabs button.active {
+    background-color: #007bff;
+    color: #fff;
+  }
+  
+  .tab-content {
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 5px;
   }
   
