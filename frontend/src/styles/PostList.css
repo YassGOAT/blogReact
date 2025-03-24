@@ -1,26 +1,30 @@
-/* src/styles/Home.css */
-
-.home-container {
+.postlist-container {
   padding: 20px;
+  text-align: center;
 }
 
-.search-bar {
+.search-container {
   margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
 }
 
-.search-bar input {
+.search-input {
   width: 100%;
+  max-width: 400px;
   padding: 8px;
   font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 4px;
 }
 
-/* Utilisation de CSS Grid pour afficher 4 posts par ligne */
 .posts-list {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 4 colonnes égales */
+  grid-template-columns: repeat(4, 1fr);
   gap: 15px;
+  justify-content: center;
 }
 
 .post-item {
@@ -28,6 +32,7 @@
   padding: 15px;
   border-radius: 5px;
   background-color: #fff;
+  min-height: 150px;
 }
 
 .post-item h3 {
@@ -45,41 +50,20 @@
   text-align: center;
 }
 
-.pagination button {
-  margin: 0 5px;
-  padding: 5px 10px;
-  border: none;
-  background-color: #007bff;
+.btn {
+  padding: 8px 12px;
+  background-color: #28a745;
   color: #fff;
-  border-radius: 3px;
+  text-decoration: none;
+  border: none;
+  border-radius: 4px;
   cursor: pointer;
 }
 
-.pagination button.active {
+.add-post-btn {
+  background-color: #007bff;
+}
+
+.btn.active {
   background-color: #0056b3;
-}
-
-/* Responsive : pour les écrans moyens et petits */
-@media (max-width: 1024px) {
-  .posts-list {
-    grid-template-columns: repeat(2, 1fr); /* 2 posts par ligne */
-  }
-}
-
-@media (max-width: 768px) {
-  .home-container {
-    padding: 10px;
-  }
-  .post-item {
-    padding: 10px;
-  }
-  .post-item h3 {
-    font-size: 18px;
-  }
-  .post-item p {
-    font-size: 14px;
-  }
-  .posts-list {
-    grid-template-columns: 1fr; /* 1 post par ligne */
-  }
 }

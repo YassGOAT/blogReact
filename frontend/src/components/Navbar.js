@@ -28,7 +28,8 @@ function Navbar() {
 
   // Récupération de tous les utilisateurs pour la recherche
   useEffect(() => {
-    fetch('http://localhost:8081/utilisateur')
+    // Correction ici : utiliser /users au lieu de /utilisateur
+    fetch('http://localhost:8081/users')
       .then(res => res.json())
       .then(data => setAllUsers(data))
       .catch(err => console.error(err));
@@ -41,12 +42,13 @@ function Navbar() {
       setFilteredUsers([]);
     } else {
       const filtered = allUsers.filter(user =>
-        user.username.toLowerCase().includes(term) ||
-        (user.email && user.email.toLowerCase().includes(term))
+        user.username.toLowerCase().startsWith(term) ||
+        (user.email && user.email.toLowerCase().startsWith(term))
       );
       setFilteredUsers(filtered);
     }
   }, [userSearchTerm, allUsers]);
+
 
   return (
     <nav className="navbar">

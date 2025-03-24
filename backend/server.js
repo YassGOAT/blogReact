@@ -1,13 +1,11 @@
 const express = require('express');
 const mysql = require('mysql');
 const cors = require('cors');
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const app = express();
 const port = 8081;
-const saltRounds = 10;
-const jwtSecret = 'votre_secret'; // Remplacez par une chaîne complexe pour la production
+const jwtSecret = process.env.JWT_SECRET || 'votre_secret';
 
 app.use(cors());
 app.use(express.json());
@@ -16,7 +14,7 @@ app.use(express.json());
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '', // Mettez ici votre mot de passe si nécessaire
+  password: '', // Adaptez selon votre configuration
   database: 'blog'
 });
 
@@ -36,26 +34,24 @@ const verifyToken = (req, res, next) => {
   const token = authHeader.split(' ')[1]; // Format attendu : "Bearer <token>"
   jwt.verify(token, jwtSecret, (err, decoded) => {
     if (err) return res.status(401).json({ error: 'Invalid or expired token' });
-    req.user = decoded; // Contient { id, email, iat, exp }
+    req.user = decoded;
     next();
   });
 };
 
-// Endpoint de test
+// --- ENDPOINTS DE TEST ET RACINE ---
+
 app.get('/test', (req, res) => {
   res.json({ message: 'Le serveur fonctionne correctement.' });
 });
 
-// Route racine
 app.get('/', (req, res) => {
   res.send('Backend du site Blog');
 });
 
-// ======================
-// Gestion des utilisateurs
-// ======================
+// --- GESTION DES UTILISATEURS ---
 
-// Inscription
+// Inscription (stockage des mots de passe en clair pour tester)
 app.post('/register', (req, res) => {
   const { username, email, password, bio, role } = req.body;
   if (!username || !email || !password) {
@@ -65,38 +61,38 @@ app.post('/register', (req, res) => {
   db.query(checkQuery, [email], (err, results) => {
     if (err) return res.status(500).json({ error: err });
     if (results.length > 0) return res.status(400).json({ error: 'Email already used' });
-    bcrypt.hash(password, saltRounds, (err, hash) => {
+    const insertQuery = 'INSERT INTO users (username, email, password, bio, role) VALUES (?, ?, ?, ?, ?)';
+    db.query(insertQuery, [username, email, password, bio || '', role || 'reader'], (err, result) => {
       if (err) return res.status(500).json({ error: err });
-      const insertQuery = 'INSERT INTO users (username, email, password, bio, role) VALUES (?, ?, ?, ?, ?)';
-      db.query(insertQuery, [username, email, hash, bio || '', role || 'reader'], (err, result) => {
-        if (err) return res.status(500).json({ error: err });
-        res.json({ message: 'Registration successful', userId: result.insertId });
-      });
+      res.json({ message: 'Registration successful', userId: result.insertId });
     });
   });
 });
 
-// Connexion
+// Connexion (comparaison en clair)
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password)
     return res.status(400).json({ error: 'Email and password are required' });
+  
   const query = 'SELECT * FROM users WHERE email = ?';
   db.query(query, [email], (err, results) => {
     if (err) return res.status(500).json({ error: err });
     if (results.length === 0)
       return res.status(401).json({ error: 'Invalid email or password' });
+    
     const user = results[0];
-    bcrypt.compare(password, user.password, (err, isMatch) => {
-      if (err) return res.status(500).json({ error: err });
-      if (!isMatch)
-        return res.status(401).json({ error: 'Invalid email or password' });
-      const token = jwt.sign({ id: user.id, email: user.email }, jwtSecret, { expiresIn: '1h' });
-      res.json({ message: 'Login successful', token });
-    });
+    if (password !== user.password) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+    
+    // Génération du token JWT (pour les routes protégées)
+    const token = jwt.sign({ id: user.id, email: user.email }, jwtSecret, { expiresIn: '1h' });
+    res.json({ message: 'Login successful', token });
   });
 });
 
+// Liste de tous les utilisateurs (pour la barre de recherche)
 app.get('/users', (req, res) => {
   const query = 'SELECT id, username, email FROM users';
   db.query(query, (err, results) => {
@@ -105,10 +101,19 @@ app.get('/users', (req, res) => {
   });
 });
 
+// Récupérer un utilisateur par son ID
+app.get('/users/:id', (req, res) => {
+  const userId = req.params.id;
+  const query = 'SELECT id, username, email, bio, role FROM users WHERE id = ?';
+  db.query(query, [userId], (err, results) => {
+    if (err) return res.status(500).json({ error: err });
+    if (results.length === 0) return res.status(404).json({ error: 'User not found' });
+    res.json(results[0]);
+  });
+});
 
-// ======================
-// Gestion du profil
-// ======================
+// --- GESTION DU PROFIL ---
+
 app.get('/account', verifyToken, (req, res) => {
   const userId = req.user.id;
   const userQuery = 'SELECT id, username, email, bio, role FROM users WHERE id = ?';
@@ -129,19 +134,45 @@ app.get('/account', verifyToken, (req, res) => {
   });
 });
 
-// ======================
-// Gestion des catégories
-// ======================
+// --- GESTION DES CATÉGORIES ---
+
+// Créer une nouvelle catégorie
+app.post('/categories', (req, res) => {
+  const { name } = req.body;
+  if (!name) {
+    return res.status(400).json({ error: 'Le nom de la catégorie est requis.' });
+  }
+  const query = 'INSERT INTO categories (name) VALUES (?)';
+  db.query(query, [name], (err, result) => {
+    if (err) {
+      console.error('Erreur lors de la création de la catégorie:', err);
+      return res.status(500).json({ error: 'Erreur lors de la création de la catégorie.' });
+    }
+    res.json({ message: 'Catégorie créée avec succès', categoryId: result.insertId });
+  });
+});
+
+// Récupérer toutes les catégories
 app.get('/categories', (req, res) => {
   const query = 'SELECT * FROM categories ORDER BY name ASC';
   db.query(query, (err, results) => {
-    if (err)
-      return res.status(500).json({ error: 'Erreur serveur lors de la récupération des catégories.' });
+    if (err) return res.status(500).json({ error: 'Erreur lors de la récupération des catégories.' });
     res.json(results);
   });
 });
 
-// Récupérer les posts associés à une catégorie donnée
+// Récupérer une catégorie par son ID
+app.get('/categories/:id', (req, res) => {
+  const categoryId = req.params.id;
+  const query = 'SELECT * FROM categories WHERE id = ?';
+  db.query(query, [categoryId], (err, results) => {
+    if (err) return res.status(500).json({ error: err });
+    if (results.length === 0) return res.status(404).json({ error: 'Category not found' });
+    res.json(results[0]);
+  });
+});
+
+// Récupérer les posts d'une catégorie donnée
 app.get('/categories/:id/posts', (req, res) => {
   const categoryId = req.params.id;
   const query = `
@@ -151,7 +182,6 @@ app.get('/categories/:id/posts', (req, res) => {
     LEFT JOIN posts_categories pc ON p.id = pc.post_id
     LEFT JOIN categories c ON pc.category_id = c.id
     WHERE pc.category_id = ?
-
   `;
   db.query(query, [categoryId], (err, results) => {
     if (err) return res.status(500).json({ error: err });
@@ -159,12 +189,9 @@ app.get('/categories/:id/posts', (req, res) => {
   });
 });
 
+// --- GESTION DES POSTS ---
 
-// ======================
-// Gestion des posts
-// ======================
-
-// Endpoint pour Home : récupérer tous les posts sans la catégorie
+// Récupérer tous les posts
 app.get('/posts', (req, res) => {
   const query = `
     SELECT id, title, content, user_id, created_at, updated_at 
@@ -177,7 +204,7 @@ app.get('/posts', (req, res) => {
   });
 });
 
-// Endpoint pour le détail d'un post : récupérer un post avec auteur et catégorie
+// Récupérer le détail d'un post
 app.get('/posts/:id', (req, res) => {
   const postId = req.params.id;
   const query = `
@@ -196,14 +223,13 @@ app.get('/posts/:id', (req, res) => {
   });
 });
 
-// Créer un nouveau post (protégé) avec choix de catégorie et tags
+// Créer un nouveau post (protégé, associé à l'utilisateur connecté)
 app.post('/posts', verifyToken, (req, res) => {
   const { title, content, category_id, tags } = req.body;
   const userId = req.user.id;
   if (!title || !content) {
     return res.status(400).json({ error: 'Title and content are required' });
   }
-  // Insérer le post
   const query = 'INSERT INTO posts (title, content, user_id) VALUES (?, ?, ?)';
   db.query(query, [title, content, userId], (err, result) => {
     if (err) {
@@ -211,14 +237,14 @@ app.post('/posts', verifyToken, (req, res) => {
       return res.status(500).json({ error: 'Erreur lors de la création du post.' });
     }
     const postId = result.insertId;
-    // Associer une catégorie via posts_categories si une catégorie est sélectionnée
+    // Association de la catégorie
     if (category_id) {
       const catQuery = 'INSERT INTO posts_categories (post_id, category_id) VALUES (?, ?)';
       db.query(catQuery, [postId, category_id], (err) => {
         if (err) console.error('Erreur lors de l\'association catégorie:', err);
       });
     }
-    // Associer des tags via posts_tags si fournis (tags doit être un tableau d'identifiants)
+    // Association des tags si fournis
     if (tags && Array.isArray(tags) && tags.length > 0) {
       const tagValues = tags.map(tagId => [postId, tagId]);
       const tagQuery = 'INSERT INTO posts_tags (post_id, tag_id) VALUES ?';
@@ -227,6 +253,24 @@ app.post('/posts', verifyToken, (req, res) => {
       });
     }
     res.json({ message: 'Post created successfully', postId });
+  });
+});
+
+// Supprimer un post (protégé, uniquement si l'utilisateur est le propriétaire)
+app.delete('/posts/:id', verifyToken, (req, res) => {
+  const postId = req.params.id;
+  const userId = req.user.id;
+
+  const checkQuery = 'SELECT * FROM posts WHERE id = ? AND user_id = ?';
+  db.query(checkQuery, [postId, userId], (err, results) => {
+    if (err) return res.status(500).json({ error: err });
+    if (results.length === 0)
+      return res.status(403).json({ error: 'Not authorized to delete this post' });
+    const deleteQuery = 'DELETE FROM posts WHERE id = ?';
+    db.query(deleteQuery, [postId], (err) => {
+      if (err) return res.status(500).json({ error: err });
+      res.json({ message: 'Post deleted successfully' });
+    });
   });
 });
 
@@ -249,22 +293,6 @@ app.put('/posts/:id', verifyToken, (req, res) => {
     });
   });
 });
-
-// Chercher une catégorie spécifique par son ID 
-app.get('/categories/:id', (req, res) => {
-  const categoryId = req.params.id;
-  const query = 'SELECT * FROM categories WHERE id = ?';
-  db.query(query, [categoryId], (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: err });
-    }
-    if (results.length === 0) {
-      return res.status(404).json({ error: 'Category not found' });
-    }
-    res.json(results[0]);
-  });
-});
-
 
 app.listen(port, () => {
   console.log(`Serveur lancé sur le port ${port}`);

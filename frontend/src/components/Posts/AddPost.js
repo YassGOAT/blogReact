@@ -11,26 +11,31 @@ function AddPost() {
   const [categories, setCategories] = useState([]);
   const [error, setError] = useState('');
 
-  // Récupérer la liste des catégories
   useEffect(() => {
     fetch('http://localhost:8081/categories')
-      .then((res) => res.json())
-      .then((data) => setCategories(data))
-      .catch((err) => console.error(err));
+      .then(res => res.json())
+      .then(data => setCategories(data))
+      .catch(err => console.error('Erreur lors de la récupération des catégories :', err));
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token'); // On récupère le token stocké lors du login
       const res = await fetch('http://localhost:8081/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}` // On envoie le token
         },
-        body: JSON.stringify({ title, content, category_id: categoryId })
+        body: JSON.stringify({
+          title,
+          content,
+          category_id: categoryId
+          // plus besoin d'envoyer user_id
+        })
       });
       const data = await res.json();
       if (!res.ok) {

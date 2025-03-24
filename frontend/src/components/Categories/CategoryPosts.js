@@ -1,3 +1,4 @@
+// src/components/Categories/CategoryPosts.js
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import '../../styles/CategoryPosts.css';
@@ -7,6 +8,7 @@ function CategoryPosts() {
   const [posts, setPosts] = useState([]);
   const [category, setCategory] = useState(null);
   const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchCategoryPosts = async () => {
@@ -35,17 +37,30 @@ function CategoryPosts() {
     fetchCategoryPosts();
   }, [id]);
 
+  // Filtrage des posts selon le terme de recherche
+  const filteredPosts = posts.filter(post =>
+    post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    post.content.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (error) return <div className="categoryposts-container"><p className="error">{error}</p></div>;
   if (!category) return <div className="categoryposts-container">Chargement de la catégorie...</div>;
 
   return (
     <div className="categoryposts-container">
       <h2>Catégorie : {category.name}</h2>
-      {posts.length === 0 ? (
-        <p>Aucun post dans cette catégorie.</p>
+      <input
+        type="text"
+        placeholder="Rechercher dans cette catégorie..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="category-post-search-input"
+      />
+      {filteredPosts.length === 0 ? (
+        <p>Aucun post correspondant dans cette catégorie.</p>
       ) : (
         <ul>
-          {posts.map(post => (
+          {filteredPosts.map(post => (
             <li key={post.id}>
               <Link to={`/posts/${post.id}`} className="link">
                 {post.title}
