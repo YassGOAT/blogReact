@@ -28,7 +28,7 @@ function Navbar() {
 
   // Récupération de tous les utilisateurs pour la recherche
   useEffect(() => {
-    fetch('http://localhost:8081/users')
+    fetch('http://localhost:8081/utilisateur')
       .then(res => res.json())
       .then(data => setAllUsers(data))
       .catch(err => console.error(err));

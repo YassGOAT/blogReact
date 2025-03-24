@@ -97,6 +97,15 @@ app.post('/login', (req, res) => {
   });
 });
 
+app.get('/users', (req, res) => {
+  const query = 'SELECT id, username, email FROM users';
+  db.query(query, (err, results) => {
+    if (err) return res.status(500).json({ error: err });
+    res.json(results);
+  });
+});
+
+
 // ======================
 // Gestion du profil
 // ======================
@@ -141,14 +150,15 @@ app.get('/categories/:id/posts', (req, res) => {
     JOIN users u ON p.user_id = u.id
     LEFT JOIN posts_categories pc ON p.id = pc.post_id
     LEFT JOIN categories c ON pc.category_id = c.id
-    WHERE p.id = ?
-  `;
+    WHERE pc.category_id = ?
 
+  `;
   db.query(query, [categoryId], (err, results) => {
     if (err) return res.status(500).json({ error: err });
     res.json(results);
   });
 });
+
 
 // ======================
 // Gestion des posts
@@ -239,6 +249,8 @@ app.put('/posts/:id', verifyToken, (req, res) => {
     });
   });
 });
+
+
 
 app.listen(port, () => {
   console.log(`Serveur lancé sur le port ${port}`);
