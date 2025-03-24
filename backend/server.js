@@ -250,6 +250,20 @@ app.put('/posts/:id', verifyToken, (req, res) => {
   });
 });
 
+// Chercher une catégorie spécifique par son ID 
+app.get('/categories/:id', (req, res) => {
+  const categoryId = req.params.id;
+  const query = 'SELECT * FROM categories WHERE id = ?';
+  db.query(query, [categoryId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+    res.json(results[0]);
+  });
+});
 
 
 app.listen(port, () => {
