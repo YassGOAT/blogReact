@@ -34,7 +34,7 @@ const verifyToken = (req, res, next) => {
   const token = authHeader.split(' ')[1]; // Format attendu : "Bearer <token>"
   jwt.verify(token, jwtSecret, (err, decoded) => {
     if (err) return res.status(401).json({ error: 'Invalid or expired token' });
-    req.user = decoded;
+    req.user = decoded; // Contient { id, email, iat, exp }
     next();
   });
 };
@@ -176,12 +176,14 @@ app.get('/categories/:id', (req, res) => {
 app.get('/categories/:id/posts', (req, res) => {
   const categoryId = req.params.id;
   const query = `
-    SELECT p.*, u.username, c.name AS category
+    SELECT p.id, p.title, p.content, p.user_id, p.created_at, p.updated_at, 
+           u.username, c.name AS category
     FROM posts p
-    JOIN users u ON p.user_id = u.id
+    LEFT JOIN users u ON p.user_id = u.id
     LEFT JOIN posts_categories pc ON p.id = pc.post_id
     LEFT JOIN categories c ON pc.category_id = c.id
     WHERE pc.category_id = ?
+    ORDER BY p.created_at DESC
   `;
   db.query(query, [categoryId], (err, results) => {
     if (err) return res.status(500).json({ error: err });
@@ -191,12 +193,16 @@ app.get('/categories/:id/posts', (req, res) => {
 
 // --- GESTION DES POSTS ---
 
-// Récupérer tous les posts
+// Récupérer tous les posts (avec auteur et catégorie)
 app.get('/posts', (req, res) => {
   const query = `
-    SELECT id, title, content, user_id, created_at, updated_at 
-    FROM posts 
-    ORDER BY created_at DESC
+    SELECT p.id, p.title, p.content, p.user_id, p.created_at, p.updated_at, 
+           u.username, c.name AS category
+    FROM posts p
+    LEFT JOIN users u ON p.user_id = u.id
+    LEFT JOIN posts_categories pc ON p.id = pc.post_id
+    LEFT JOIN categories c ON pc.category_id = c.id
+    ORDER BY p.created_at DESC
   `;
   db.query(query, (err, results) => {
     if (err) return res.status(500).json({ error: err });
@@ -208,9 +214,10 @@ app.get('/posts', (req, res) => {
 app.get('/posts/:id', (req, res) => {
   const postId = req.params.id;
   const query = `
-    SELECT p.*, u.username, c.name AS category
+    SELECT p.id, p.title, p.content, p.user_id, p.created_at, p.updated_at, 
+           u.username, c.name AS category
     FROM posts p
-    JOIN users u ON p.user_id = u.id
+    LEFT JOIN users u ON p.user_id = u.id
     LEFT JOIN posts_categories pc ON p.id = pc.post_id
     LEFT JOIN categories c ON pc.category_id = c.id
     WHERE p.id = ?
@@ -237,7 +244,7 @@ app.post('/posts', verifyToken, (req, res) => {
       return res.status(500).json({ error: 'Erreur lors de la création du post.' });
     }
     const postId = result.insertId;
-    // Association de la catégorie
+    // Association de la catégorie si fournie
     if (category_id) {
       const catQuery = 'INSERT INTO posts_categories (post_id, category_id) VALUES (?, ?)';
       db.query(catQuery, [postId, category_id], (err) => {
@@ -256,20 +263,36 @@ app.post('/posts', verifyToken, (req, res) => {
   });
 });
 
-// Supprimer un post (protégé, uniquement si l'utilisateur est le propriétaire)
+// Supprimer un post (protégé, en supprimant d'abord la référence dans posts_categories)
 app.delete('/posts/:id', verifyToken, (req, res) => {
   const postId = req.params.id;
   const userId = req.user.id;
 
+  // Vérifier que le post appartient à l'utilisateur
   const checkQuery = 'SELECT * FROM posts WHERE id = ? AND user_id = ?';
   db.query(checkQuery, [postId, userId], (err, results) => {
-    if (err) return res.status(500).json({ error: err });
-    if (results.length === 0)
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (results.length === 0) {
       return res.status(403).json({ error: 'Not authorized to delete this post' });
-    const deleteQuery = 'DELETE FROM posts WHERE id = ?';
-    db.query(deleteQuery, [postId], (err) => {
-      if (err) return res.status(500).json({ error: err });
-      res.json({ message: 'Post deleted successfully' });
+    }
+
+    // 1) Supprimer la référence dans posts_categories pour éviter l'erreur de contrainte
+    const deleteCatQuery = 'DELETE FROM posts_categories WHERE post_id = ?';
+    db.query(deleteCatQuery, [postId], (err2) => {
+      if (err2) {
+        return res.status(500).json({ error: err2.message });
+      }
+
+      // 2) Supprimer ensuite le post lui-même
+      const deletePostQuery = 'DELETE FROM posts WHERE id = ?';
+      db.query(deletePostQuery, [postId], (err3) => {
+        if (err3) {
+          return res.status(500).json({ error: err3.message });
+        }
+        res.json({ message: 'Post deleted successfully' });
+      });
     });
   });
 });
@@ -279,16 +302,14 @@ app.put('/posts/:id', verifyToken, (req, res) => {
   const { title, content } = req.body;
   const postId = req.params.id;
   const userId = req.user.id;
-
   const checkQuery = 'SELECT * FROM posts WHERE id = ? AND user_id = ?';
   db.query(checkQuery, [postId, userId], (err, results) => {
     if (err) return res.status(500).json({ error: err });
     if (results.length === 0)
       return res.status(403).json({ error: 'Not authorized to update this post' });
-    
     const updateQuery = 'UPDATE posts SET title = ?, content = ? WHERE id = ?';
-    db.query(updateQuery, [title, content, postId], (err) => {
-      if (err) return res.status(500).json({ error: err });
+    db.query(updateQuery, [title, content, postId], (err2) => {
+      if (err2) return res.status(500).json({ error: err2 });
       res.json({ message: 'Post updated successfully' });
     });
   });

@@ -1,3 +1,5 @@
+/* src/styles/PostList.css */
+
 .postlist-container {
   padding: 20px;
   text-align: center;
@@ -28,6 +30,7 @@
 }
 
 .post-item {
+  position: relative;
   border: 1px solid #ccc;
   padding: 15px;
   border-radius: 5px;
@@ -38,6 +41,20 @@
 .post-item h3 {
   margin: 0 0 10px;
   font-size: 20px;
+}
+
+.meta {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.meta .author {
+  font-weight: bold;
+}
+
+.meta .category {
+  font-style: italic;
 }
 
 .post-item p {
@@ -66,4 +83,90 @@
 
 .btn.active {
   background-color: #0056b3;
+}
+
+/* Bouton de suppression */
+.delete-btn {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e62222;
+  border: none;
+  border-radius: 5px;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  transition: 200ms;
+}
+
+.delete-btn .text {
+  display: none; /* On masque le texte pour n'afficher que l'icône */
+}
+
+.delete-btn .icon {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 200ms;
+}
+
+.delete-btn svg {
+  width: 16px;
+  fill: #eee;
+}
+
+.delete-btn:hover {
+  background: #ff3636;
+}
+
+.delete-btn:focus {
+  outline: none;
+}
+
+.delete-btn:active svg {
+  transform: scale(0.8);
+}
+
+/* Modale de confirmation */
+.confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.confirm-box {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  width: 300px;
+}
+
+.confirm-buttons {
+  margin-top: 15px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.confirm-yes {
+  background-color: #e62222;
+}
+
+.confirm-no {
+  background-color: #6c757d;
 }
