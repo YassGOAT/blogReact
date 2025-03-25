@@ -1,3 +1,4 @@
+// src/components/Posts/CommentList.js
 import React from 'react';
 import '../../styles/CommentList.css';
 

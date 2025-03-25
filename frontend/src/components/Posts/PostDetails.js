@@ -1,85 +1,78 @@
 // src/components/Posts/PostDetails.js
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import CommentForm from '../Comments/CommentForm';
-import CommentList from '../Comments/CommentList';
+import CommentForm from '../Comments/CommentForm';   // Vérifiez le chemin si nécessaire
+import CommentList from '../Comments/CommentList';   // Vérifiez le chemin si nécessaire
 import '../../styles/PostDetails.css';
 
 function PostDetails() {
   const { id } = useParams();
   const [post, setPost] = useState(null);
-  const [error, setError] = useState('');
   const [comments, setComments] = useState([]);
+  const [error, setError] = useState('');
 
   // Récupérer le post
   useEffect(() => {
-    const fetchPostDetails = async () => {
-      try {
-        const res = await fetch(`http://localhost:8081/posts/${id}`);
-        const data = await res.json();
-        if (!res.ok) {
-          setError(data.error || 'Erreur lors de la récupération du post.');
-        } else {
+    fetch(`http://localhost:8081/posts/${id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.error) {
           setPost(data);
-        }
-      } catch (err) {
-        setError('Erreur réseau.');
-      }
-    };
-    fetchPostDetails();
-  }, [id]);
-
-  // Récupérer les commentaires pour ce post
-  useEffect(() => {
-    const fetchComments = async () => {
-      try {
-        // Supposons que l'endpoint GET /posts/:id/comments existe
-        const res = await fetch(`http://localhost:8081/posts/${id}/comments`);
-        const data = await res.json();
-        if (!res.ok) {
-          // On peut gérer l'absence de commentaires par défaut
-          setComments([]);
         } else {
-          setComments(data);
+          setError(data.error);
         }
-      } catch (err) {
-        setComments([]);
-      }
-    };
-    fetchComments();
+      })
+      .catch(() => {
+        setError('Erreur réseau lors de la récupération du post.');
+      });
   }, [id]);
 
-  // Fonction pour rafraîchir les commentaires après ajout
-  const refreshComments = () => {
+  // Récupérer les commentaires du post
+  useEffect(() => {
+    fetch(`http://localhost:8081/posts/${id}/comments`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.error) {
+          setComments(data);
+        } else {
+          setComments([]);
+        }
+      })
+      .catch(() => {
+        setComments([]);
+      });
+  }, [id]);
+
+  // Rafraîchir les commentaires après ajout
+  const handleCommentAdded = () => {
     fetch(`http://localhost:8081/posts/${id}/comments`)
       .then((res) => res.json())
       .then((data) => setComments(data))
       .catch(() => setComments([]));
   };
 
-  if (error)
-    return (
-      <div className="postdetails-container">
-        <p className="error">{error}</p>
-      </div>
-    );
-  if (!post)
-    return <div className="postdetails-container">Chargement du post...</div>;
+  if (error) {
+    return <div className="postdetails-container"><p className="error">{error}</p></div>;
+  }
+  if (!post) {
+    return <div className="postdetails-container">Chargement...</div>;
+  }
 
   return (
     <div className="postdetails-container">
       <h2>{post.title}</h2>
-      <div className="post-meta">
-        <span className="author">Par {post.username || 'Inconnu'}</span>
-        {post.category && <span className="category"> – {post.category}</span>}
+      <p className="post-meta">
+        Par <strong>{post.username || 'Inconnu'}</strong>
+        {post.category && <> – {post.category}</>}
+      </p>
+      <div className="post-content">
+        {post.content}
       </div>
-      <div className="post-content">{post.content}</div>
-
       {/* Section Commentaires */}
       <section className="comments-section">
         <h3>Commentaires</h3>
         <CommentList comments={comments} />
-        <CommentForm postId={id} onCommentAdded={refreshComments} />
+        <CommentForm postId={id} onCommentAdded={handleCommentAdded} />
       </section>
     </div>
   );

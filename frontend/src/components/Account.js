@@ -1,6 +1,6 @@
 // src/components/Account.js
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import '../styles/Account.css';
 
 function Account() {
@@ -9,10 +9,9 @@ function Account() {
   const [activeTab, setActiveTab] = useState('posts');
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredPosts, setFilteredPosts] = useState([]);
-
   const location = useLocation();
 
-  // Lire le paramètre ?tab=posts ou ?tab=comments
+  // Lire le paramètre ?tab=posts ou ?tab=comments dans l'URL
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tab = params.get('tab');
@@ -43,13 +42,12 @@ function Account() {
     fetchAccount();
   }, []);
 
-  // Filtrer les posts de l'utilisateur selon la recherche
+  // Filtrer les posts de l'utilisateur selon le titre uniquement
   useEffect(() => {
     if (accountData && accountData.posts) {
       const term = searchTerm.toLowerCase();
       const filtered = accountData.posts.filter(post =>
-        post.title.toLowerCase().includes(term) ||
-        post.content.toLowerCase().includes(term)
+        post.title.toLowerCase().includes(term)
       );
       setFilteredPosts(filtered);
     }
@@ -71,12 +69,12 @@ function Account() {
   return (
     <div className="account-container">
       <h2>Mon Compte</h2>
-      {/* Affichage de la bio sans email ni rôle */}
+      {/* Affichage de la bio (sans email ni rôle) */}
       <div className="bio-section">
         <p><strong>Nom d'utilisateur :</strong> {profile.username}</p>
         <p><strong>Bio :</strong> {profile.bio}</p>
       </div>
-      {/* Onglets */}
+      {/* Onglets de navigation */}
       <div className="account-tabs">
         <button
           className={activeTab === 'posts' ? 'active' : ''}
@@ -111,7 +109,9 @@ function Account() {
             <ul>
               {filteredPosts.map((post) => (
                 <li key={post.id}>
-                  <strong>{post.title}</strong> – {post.content.substring(0, 50)}...
+                  <Link to={`/posts/${post.id}`}>
+                    <strong>{post.title}</strong> – {post.content.substring(0, 50)}...
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -127,7 +127,11 @@ function Account() {
           ) : (
             <ul>
               {comments.map((comment) => (
-                <li key={comment.id}>{comment.content}</li>
+                <li key={comment.id}>
+                  <Link to={`/posts/${comment.post_id}`}>
+                    {comment.content}
+                  </Link>
+                </li>
               ))}
             </ul>
           )}

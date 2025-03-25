@@ -1,6 +1,6 @@
 // src/components/Navbar.js
 import React, { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../styles/Navbar.css';
 
 function Navbar() {
@@ -10,6 +10,7 @@ function Navbar() {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
   // Récupération des infos de l'utilisateur connecté
   useEffect(() => {
@@ -18,41 +19,42 @@ function Navbar() {
       fetch('http://localhost:8081/account', {
         headers: { 'Authorization': `Bearer ${token}` }
       })
-        .then(res => res.json())
-        .then(data => {
+        .then((res) => res.json())
+        .then((data) => {
           if (data.profile && data.profile.username) {
             setLoggedUser(data.profile);
           }
         })
-        .catch(err => {
-          // Gestion silencieuse de l'erreur, ou afficher une alerte si nécessaire
+        .catch(() => {
+          // Gestion d'erreur silencieuse
         });
     }
   }, []);
 
   // Récupération de tous les utilisateurs pour la recherche
-  useEffect(() => {
-    fetch('http://localhost:8081/utilisateur')
-      .then(res => res.json())
-      .then(data => setAllUsers(data))
-      .catch(err => {
-        // Gestion silencieuse ou alerte
-      });
-  }, []);
+useEffect(() => {
+  fetch('http://localhost:8081/users')
+    .then((res) => res.json())
+    .then((data) => setAllUsers(data))
+    .catch(() => {
+      // Gestion silencieuse ou alerte
+    });
+}, []);
 
-  // Filtrage des utilisateurs en fonction du terme de recherche
-  useEffect(() => {
-    const term = userSearchTerm.toLowerCase();
-    if (term === '') {
-      setFilteredUsers([]);
-    } else {
-      const filtered = allUsers.filter(user =>
-        user.username.toLowerCase().includes(term) ||
-        (user.email && user.email.toLowerCase().includes(term))
-      );
-      setFilteredUsers(filtered);
-    }
-  }, [userSearchTerm, allUsers]);
+// Filtrage des utilisateurs en fonction du terme de recherche
+useEffect(() => {
+  const term = userSearchTerm.toLowerCase();
+  if (term === '') {
+    setFilteredUsers([]);
+  } else {
+    const filtered = allUsers.filter((user) =>
+      user.username.toLowerCase().includes(term) ||
+      (user.email && user.email.toLowerCase().includes(term))
+    );
+    setFilteredUsers(filtered);
+  }
+}, [userSearchTerm, allUsers]);
+
 
   // Fermer le dropdown en cliquant en dehors
   useEffect(() => {
@@ -61,11 +63,18 @@ function Navbar() {
         setShowDropdown(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [dropdownRef]);
+
+  // Gestion de la déconnexion
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setLoggedUser(null);
+    navigate('/login');
+  };
 
   return (
     <nav className="navbar">
@@ -81,9 +90,12 @@ function Navbar() {
           {userSearchTerm && filteredUsers.length > 0 && (
             <div className="user-search-results">
               <ul>
-                {filteredUsers.map(user => (
+                {filteredUsers.map((user) => (
                   <li key={user.id}>
-                    <Link to={`/users/${user.id}`} onClick={() => setUserSearchTerm('')}>
+                    <Link
+                      to={`/users/${user.id}`}
+                      onClick={() => setUserSearchTerm('')}
+                    >
                       {user.username}
                     </Link>
                   </li>
@@ -103,17 +115,31 @@ function Navbar() {
           <Link to="/">Home</Link>
           <Link to="/posts">Posts</Link>
           <Link to="/categories">Categories</Link>
-          <Link to="/add-post" className="create-post-btn"> + Publier un post</Link>
+          <Link to="/add-post" className="create-post-btn">
+            Créer un Post
+          </Link>
           {loggedUser ? (
             <div className="user-dropdown">
-              <span className="username" onClick={() => setShowDropdown(prev => !prev)}>
+              <span
+                className="username"
+                onClick={() => setShowDropdown((prev) => !prev)}
+              >
                 Bonjour, {loggedUser.username}
               </span>
               {showDropdown && (
                 <div className="dropdown-menu" ref={dropdownRef}>
-                  <Link to="/account" className="dropdown-item">Voir profil</Link>
-                  <Link to="/account?tab=posts" className="dropdown-item">Voir posts</Link>
-                  <Link to="/account?tab=comments" className="dropdown-item">Voir commentaires</Link>
+                  <Link to="/account" className="dropdown-item">
+                    Voir profil
+                  </Link>
+                  <Link to="/account?tab=posts" className="dropdown-item">
+                    Voir posts
+                  </Link>
+                  <Link to="/account?tab=comments" className="dropdown-item">
+                    Voir commentaires
+                  </Link>
+                  <button onClick={handleLogout} className="dropdown-item logout-btn">
+                    Se déconnecter
+                  </button>
                 </div>
               )}
             </div>

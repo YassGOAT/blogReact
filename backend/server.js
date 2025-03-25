@@ -31,7 +31,7 @@ const verifyToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   if (!authHeader)
     return res.status(403).json({ error: 'No token provided' });
-  const token = authHeader.split(' ')[1];
+  const token = authHeader.split(' ')[1]; // Format : "Bearer <token>"
   jwt.verify(token, jwtSecret, (err, decoded) => {
     if (err) return res.status(401).json({ error: 'Invalid or expired token' });
     req.user = decoded;
@@ -103,7 +103,8 @@ app.get('/account', verifyToken, (req, res) => {
   const userId = req.user.id;
   const userQuery = 'SELECT id, username, email, bio, role FROM users WHERE id = ?';
   const postsQuery = 'SELECT id, title, content, created_at FROM posts WHERE user_id = ?';
-  const commentsQuery = 'SELECT id, content FROM comments WHERE user_id = ?';
+  // Modification : inclure post_id pour permettre la redirection dans le profil
+  const commentsQuery = 'SELECT id, content, post_id FROM comments WHERE user_id = ?';
   
   db.query(userQuery, [userId], (err, userResults) => {
     if (err) return res.status(500).json({ error: err });
@@ -118,6 +119,8 @@ app.get('/account', verifyToken, (req, res) => {
     });
   });
 });
+
+
 
 // --- GESTION DES CATÉGORIES ---
 app.post('/categories', (req, res) => {
@@ -283,6 +286,27 @@ app.post('/comments', verifyToken, (req, res) => {
     res.json({ message: 'Comment added successfully', commentId: result.insertId });
   });
 });
+
+// Ajoutez cet endpoint juste après vos endpoints existants (par exemple, après les endpoints pour les posts)
+app.get('/posts/:id/comments', (req, res) => {
+  const postId = req.params.id;
+  const query = `
+    SELECT c.id, c.content, c.user_id, c.post_id, c.created_at,
+           u.username AS author
+    FROM comments c
+    JOIN users u ON c.user_id = u.id
+    WHERE c.post_id = ?
+    ORDER BY c.created_at DESC
+  `;
+  db.query(query, [postId], (err, results) => {
+    if (err) {
+      console.error('Erreur lors de la récupération des commentaires :', err);
+      return res.status(500).json({ error: 'Erreur lors de la récupération des commentaires.' });
+    }
+    res.json(results);
+  });
+});
+
 
 // Optionnel : Récupérer tous les commentaires (pour test)
 app.get('/comments', (req, res) => {

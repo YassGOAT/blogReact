@@ -1,3 +1,4 @@
+// src/components/Login.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Login.css';
@@ -22,7 +23,8 @@ function Login() {
         setError(data.error || 'Erreur lors de la connexion.');
       } else {
         localStorage.setItem('token', data.token);
-        navigate('/account');
+        // Redirige vers la page d'accueil via react-router
+        navigate('/');
       }
     } catch (err) {
       setError('Erreur réseau.');
