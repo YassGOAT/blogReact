@@ -1,19 +1,14 @@
 /* src/styles/Home.css */
 
-/* Police et couleurs de base */
-body {
-  font-family: 'Roboto', sans-serif;
-  color: #202124;
-  background-color: #fff;
-  margin: 0;
-}
-
 /* Container global */
 .home-container {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  font-family: 'Roboto', sans-serif;
+  color: #202124;
+  background-color: #fff;
 }
 
 /* Section Hero */
@@ -29,17 +24,14 @@ body {
 .hero::after {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background-color: rgba(0, 0, 0, 0.4);
 }
 .hero-content {
   position: relative;
   color: #fff;
-  z-index: 1;
   text-align: center;
+  z-index: 1;
   padding: 0 20px;
 }
 .hero h1 {
@@ -63,21 +55,61 @@ body {
   background-color: #3367D6;
 }
 
-/* Section Catégories */
+/* Section À propos */
+.about-section {
+  padding: 40px 20px;
+  background-color: #f1f3f4;
+  border-radius: 4px;
+  margin-bottom: 40px;
+  text-align: center;
+}
+.about-section h2 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+.about-section p {
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+}
+.about-section .btn {
+  background-color: #4285F4;
+  padding: 10px 20px;
+  border-radius: 4px;
+  text-decoration: none;
+  color: #fff;
+  font-size: 1rem;
+  transition: background 0.3s ease;
+}
+.about-section .btn:hover {
+  background-color: #3367D6;
+}
+
+/* Section Catégories (carousel) */
 .categories-section {
   margin-bottom: 40px;
+  text-align: center;
 }
 .categories-section h2 {
   font-size: 2rem;
   margin-bottom: 20px;
 }
-.categories-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+.carousel-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 800px; /* Ajuste selon tes besoins */
+}
+.categories-carousel {
+  display: flex;
   gap: 15px;
-  margin-bottom: 20px;
+  overflow: hidden;
+  width: 70%; /* Ajuste selon tes besoins */
+  justify-content: center;
 }
 .category-card {
+  flex: 0 0 calc(33.33% - 10px);
   border: 1px solid #ccc;
   padding: 15px;
   border-radius: 4px;
@@ -92,22 +124,33 @@ body {
 .category-card:hover {
   transform: scale(1.05);
 }
-.btn.secondary-btn {
-  background-color: #34A853;
-  padding: 10px 20px;
-  border-radius: 4px;
-  text-decoration: none;
-  color: #fff;
-  font-size: 1rem;
-  transition: background 0.3s ease;
+/* Flèches */
+.arrow {
+  background-color: transparent;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  color: #4285F4;
+  padding: 10px;
 }
-.btn.secondary-btn:hover {
-  background-color: #2c8e46;
+.left-arrow {
+  position: absolute;
+  left: 0;
+}
+.right-arrow {
+  position: absolute;
+  right: 0;
+}
+/* Conteneur du bouton "Voir toutes les catégories" */
+.all-categories-btn-container {
+  margin-top: 20px;
+  text-align: center;
 }
 
 /* Section Articles récents */
 .recent-posts-section {
   margin-bottom: 40px;
+  text-align: center;
 }
 .recent-posts-section h2 {
   font-size: 2rem;
@@ -132,17 +175,17 @@ body {
 }
 .post-card h3 {
   font-size: 1.5rem;
-  margin: 0 0 10px;
+  margin-bottom: 10px;
 }
-.post-card .post-meta {
+.post-meta {
   font-size: 0.9rem;
   color: #555;
   margin-bottom: 10px;
 }
-.post-card .post-meta .author {
+.post-meta .author {
   font-weight: bold;
 }
-.post-card .post-meta .category {
+.post-meta .category {
   font-style: italic;
 }
 .post-card p {
@@ -150,47 +193,15 @@ body {
   color: #202124;
   margin-bottom: 15px;
 }
-.post-card .read-more-btn {
-  background-color: #4285F4;
-  padding: 8px 12px;
-  color: #fff;
-  text-decoration: none;
-  border-radius: 4px;
-  transition: background 0.3s ease;
-}
-.post-card .read-more-btn:hover {
-  background-color: #3367D6;
-}
+/* plus de bouton "Lire l'article" */
 
-/* Section À propos */
-.about-section {
-  padding: 40px 20px;
-  background-color: #f1f3f4;
-  border-radius: 4px;
-  margin-bottom: 40px;
-}
-.about-section h2 {
-  font-size: 2rem;
+/* Conteneur pour le bouton "Voir tous les articles" */
+.all-posts-btn-container {
+  text-align: center;
   margin-bottom: 20px;
 }
-.about-section p {
-  font-size: 1.1rem;
-  margin-bottom: 20px;
-}
-.about-section .btn {
-  background-color: #4285F4;
-  padding: 10px 20px;
-  border-radius: 4px;
-  text-decoration: none;
-  color: #fff;
-  font-size: 1rem;
-  transition: background 0.3s ease;
-}
-.about-section .btn:hover {
-  background-color: #3367D6;
-}
 
-/* Bouton générique */
+/* Boutons génériques */
 .btn {
   display: inline-block;
   padding: 10px 20px;
@@ -199,22 +210,9 @@ body {
   color: #fff;
   transition: background 0.3s ease;
 }
-
-/* Pagination */
-.pagination {
-  margin-top: 20px;
-  text-align: center;
-}
-.pagination button {
-  margin: 0 5px;
-  padding: 8px 12px;
-  border: none;
+.btn.secondary-btn {
   background-color: #34A853;
-  color: #fff;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.3s ease;
 }
-.pagination button.active {
+.btn.secondary-btn:hover {
   background-color: #2c8e46;
 }

@@ -88,7 +88,7 @@ function AddPost() {
             ))}
           </select>
         </div>
-        <button type="submit" className="btn">Créer le Post</button>
+        <button type="submit" className="btn">Publier</button>
       </form>
     </div>
   );

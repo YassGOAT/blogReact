@@ -1,5 +1,5 @@
 // src/components/Navbar.js
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/Navbar.css';
 
@@ -8,6 +8,8 @@ function Navbar() {
   const [allUsers, setAllUsers] = useState([]);
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [filteredUsers, setFilteredUsers] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
 
   // Récupération des infos de l'utilisateur connecté
   useEffect(() => {
@@ -22,17 +24,20 @@ function Navbar() {
             setLoggedUser(data.profile);
           }
         })
-        .catch(err => console.error(err));
+        .catch(err => {
+          // Gestion silencieuse de l'erreur, ou afficher une alerte si nécessaire
+        });
     }
   }, []);
 
   // Récupération de tous les utilisateurs pour la recherche
   useEffect(() => {
-    // Correction ici : utiliser /users au lieu de /utilisateur
-    fetch('http://localhost:8081/users')
+    fetch('http://localhost:8081/utilisateur')
       .then(res => res.json())
       .then(data => setAllUsers(data))
-      .catch(err => console.error(err));
+      .catch(err => {
+        // Gestion silencieuse ou alerte
+      });
   }, []);
 
   // Filtrage des utilisateurs en fonction du terme de recherche
@@ -42,17 +47,28 @@ function Navbar() {
       setFilteredUsers([]);
     } else {
       const filtered = allUsers.filter(user =>
-        user.username.toLowerCase().startsWith(term) ||
-        (user.email && user.email.toLowerCase().startsWith(term))
+        user.username.toLowerCase().includes(term) ||
+        (user.email && user.email.toLowerCase().includes(term))
       );
       setFilteredUsers(filtered);
     }
   }, [userSearchTerm, allUsers]);
 
+  // Fermer le dropdown en cliquant en dehors
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownRef]);
 
   return (
     <nav className="navbar">
-      {/* Section gauche : barre de recherche pour les utilisateurs */}
       <div className="left-section">
         <div className="user-search-container">
           <input
@@ -77,26 +93,34 @@ function Navbar() {
           )}
         </div>
       </div>
-      {/* Section centrale : Logo */}
       <div className="center-section">
         <div className="logo">
           <Link to="/">Mon Blog</Link>
         </div>
       </div>
-      {/* Section droite : Menu et bouton créer post */}
       <div className="right-section">
         <div className="menu">
           <Link to="/">Home</Link>
           <Link to="/posts">Posts</Link>
           <Link to="/categories">Categories</Link>
-          <Link to="/add-post" className="create-post-btn">Créer un Post</Link>
+          <Link to="/add-post" className="create-post-btn"> + Publier un post</Link>
           {loggedUser ? (
-            <span className="username">Bonjour, {loggedUser.username}</span>
+            <div className="user-dropdown">
+              <span className="username" onClick={() => setShowDropdown(prev => !prev)}>
+                Bonjour, {loggedUser.username}
+              </span>
+              {showDropdown && (
+                <div className="dropdown-menu" ref={dropdownRef}>
+                  <Link to="/account" className="dropdown-item">Voir profil</Link>
+                  <Link to="/account?tab=posts" className="dropdown-item">Voir posts</Link>
+                  <Link to="/account?tab=comments" className="dropdown-item">Voir commentaires</Link>
+                </div>
+              )}
+            </div>
           ) : (
             <>
               <Link to="/login">Login</Link>
               <Link to="/register">Register</Link>
-              <Link to="/account">Account</Link>
             </>
           )}
         </div>

@@ -1,4 +1,6 @@
-/* src/styles/Navbar.css */
+/* Navbar.css */
+
+/* Style général de la navbar */
 .navbar {
   background-color: #333;
   color: #fff;
@@ -10,7 +12,9 @@
   position: relative;
 }
 
-.left-section, .center-section, .right-section {
+.left-section,
+.center-section,
+.right-section {
   flex: 1;
 }
 
@@ -30,12 +34,15 @@
   justify-content: flex-end;
 }
 
+/* Logo */
 .logo a {
   font-size: 24px;
   font-weight: bold;
   color: #fff;
+  text-decoration: none;
 }
 
+/* Menu */
 .menu {
   display: flex;
   gap: 15px;
@@ -44,6 +51,16 @@
 
 .menu a {
   color: #fff;
+  text-decoration: none;
+}
+
+/* Bouton pour créer un post */
+.create-post-btn {
+  background-color: #28a745;
+  padding: 6px 10px;
+  border-radius: 4px;
+  color: #fff;
+  text-decoration: none;
 }
 
 /* Barre de recherche pour les utilisateurs */
@@ -60,6 +77,7 @@
   border: none;
 }
 
+/* Résultats de recherche des utilisateurs */
 .user-search-results {
   position: absolute;
   top: 110%;
@@ -94,25 +112,38 @@
   text-decoration: none;
 }
 
-/* Bouton pour créer un post */
-.create-post-btn {
-  background-color: #28a745;
-  padding: 6px 10px;
-  border-radius: 4px;
-  color: #fff;
-  text-decoration: none;
+/* Menu déroulant pour l'utilisateur connecté */
+.user-dropdown {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  margin-left: 15px;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .navbar {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .menu {
-    margin-top: 10px;
-  }
-  .user-search-container {
-    width: 100%;
-  }
+.user-dropdown .username {
+  color: #fff;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 120%;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  min-width: 150px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+.dropdown-item {
+  display: block;
+  padding: 10px;
+  text-decoration: none;
+  color: #333;
+  transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+  background-color: #f2f2f2;
 }

@@ -95,7 +95,7 @@ function PostList() {
           className="search-input"
         />
         <Link to="/add-post" className="btn add-post-btn">
-          Ajouter un post
+          Publier un post
         </Link>
       </div>
 

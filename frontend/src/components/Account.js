@@ -1,11 +1,27 @@
+// src/components/Account.js
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import '../styles/Account.css';
 
 function Account() {
   const [accountData, setAccountData] = useState(null);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('info');
+  const [activeTab, setActiveTab] = useState('posts');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredPosts, setFilteredPosts] = useState([]);
 
+  const location = useLocation();
+
+  // Lire le paramètre ?tab=posts ou ?tab=comments
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab === 'comments' || tab === 'posts') {
+      setActiveTab(tab);
+    }
+  }, [location.search]);
+
+  // Récupérer les infos du compte (profil, posts et commentaires)
   useEffect(() => {
     const fetchAccount = async () => {
       try {
@@ -18,6 +34,7 @@ function Account() {
           setError(data.error || 'Erreur lors de la récupération des informations.');
         } else {
           setAccountData(data);
+          if (data.posts) setFilteredPosts(data.posts);
         }
       } catch (err) {
         setError('Erreur réseau.');
@@ -26,21 +43,41 @@ function Account() {
     fetchAccount();
   }, []);
 
-  if (error)
-    return <div className="account-container"><p className="error">{error}</p></div>;
-  if (!accountData)
+  // Filtrer les posts de l'utilisateur selon la recherche
+  useEffect(() => {
+    if (accountData && accountData.posts) {
+      const term = searchTerm.toLowerCase();
+      const filtered = accountData.posts.filter(post =>
+        post.title.toLowerCase().includes(term) ||
+        post.content.toLowerCase().includes(term)
+      );
+      setFilteredPosts(filtered);
+    }
+  }, [searchTerm, accountData]);
+
+  if (error) {
+    return (
+      <div className="account-container">
+        <p className="error">{error}</p>
+      </div>
+    );
+  }
+  if (!accountData) {
     return <div className="account-container">Chargement...</div>;
+  }
+
+  const { profile, posts, comments } = accountData;
 
   return (
     <div className="account-container">
       <h2>Mon Compte</h2>
+      {/* Affichage de la bio sans email ni rôle */}
+      <div className="bio-section">
+        <p><strong>Nom d'utilisateur :</strong> {profile.username}</p>
+        <p><strong>Bio :</strong> {profile.bio}</p>
+      </div>
+      {/* Onglets */}
       <div className="account-tabs">
-        <button
-          className={activeTab === 'info' ? 'active' : ''}
-          onClick={() => setActiveTab('info')}
-        >
-          Mes Informations
-        </button>
         <button
           className={activeTab === 'posts' ? 'active' : ''}
           onClick={() => setActiveTab('posts')}
@@ -54,36 +91,42 @@ function Account() {
           Mes Commentaires
         </button>
       </div>
-      {activeTab === 'info' && (
-        <div className="tab-content">
-          <h3>Profil</h3>
-          <p><strong>Nom d'utilisateur :</strong> {accountData.profile.username}</p>
-          <p><strong>Email :</strong> {accountData.profile.email}</p>
-          <p><strong>Bio :</strong> {accountData.profile.bio}</p>
-        </div>
-      )}
+      {/* Contenu de l'onglet "posts" */}
       {activeTab === 'posts' && (
         <div className="tab-content">
           <h3>Mes Posts</h3>
-          {accountData.posts.length === 0 ? (
-            <p>Aucun post.</p>
+          <p>Nombre total de posts : {posts.length}</p>
+          <div className="search-container">
+            <input
+              type="text"
+              placeholder="Rechercher parmi mes posts..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+          </div>
+          {filteredPosts.length === 0 ? (
+            <p>Aucun post trouvé.</p>
           ) : (
             <ul>
-              {accountData.posts.map((post) => (
-                <li key={post.id}>{post.title}</li>
+              {filteredPosts.map((post) => (
+                <li key={post.id}>
+                  <strong>{post.title}</strong> – {post.content.substring(0, 50)}...
+                </li>
               ))}
             </ul>
           )}
         </div>
       )}
+      {/* Contenu de l'onglet "comments" */}
       {activeTab === 'comments' && (
         <div className="tab-content">
           <h3>Mes Commentaires</h3>
-          {accountData.comments.length === 0 ? (
+          {comments.length === 0 ? (
             <p>Aucun commentaire.</p>
           ) : (
             <ul>
-              {accountData.comments.map((comment) => (
+              {comments.map((comment) => (
                 <li key={comment.id}>{comment.content}</li>
               ))}
             </ul>
