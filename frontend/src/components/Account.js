@@ -42,7 +42,7 @@ function Account() {
     fetchAccount();
   }, []);
 
-  // Filtrer les posts de l'utilisateur selon le titre uniquement
+  // Filtrer les posts selon le titre uniquement
   useEffect(() => {
     if (accountData && accountData.posts) {
       const term = searchTerm.toLowerCase();
@@ -64,12 +64,13 @@ function Account() {
     return <div className="account-container">Chargement...</div>;
   }
 
+  // Déstructuration une fois que accountData est défini
   const { profile, posts, comments } = accountData;
 
   return (
     <div className="account-container">
       <h2>Mon Compte</h2>
-      {/* Affichage de la bio (sans email ni rôle) */}
+      {/* Affichage de la bio sans email ni rôle */}
       <div className="bio-section">
         <p><strong>Nom d'utilisateur :</strong> {profile.username}</p>
         <p><strong>Bio :</strong> {profile.bio}</p>
@@ -97,7 +98,7 @@ function Account() {
           <div className="search-container">
             <input
               type="text"
-              placeholder="Rechercher parmi mes posts..."
+              placeholder="Rechercher parmi mes posts (par titre)..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"

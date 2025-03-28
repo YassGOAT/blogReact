@@ -88,6 +88,7 @@ app.get('/users', (req, res) => {
     res.json(results);
   });
 });
+
 app.get('/users/:id', (req, res) => {
   const userId = req.params.id;
   const query = 'SELECT id, username, email, bio, role FROM users WHERE id = ?';
@@ -97,6 +98,7 @@ app.get('/users/:id', (req, res) => {
     res.json(results[0]);
   });
 });
+
 
 // --- GESTION DU PROFIL ---
 app.get('/account', verifyToken, (req, res) => {
