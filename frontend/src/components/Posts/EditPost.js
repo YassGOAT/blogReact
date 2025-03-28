@@ -1,3 +1,4 @@
+// src/components/Posts/EditPost.js
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import '../../styles/EditPost.css';
@@ -9,29 +10,38 @@ function EditPost() {
   const [content, setContent] = useState('');
   const [error, setError] = useState('');
 
+  // Récupérer les données du post
   useEffect(() => {
     const fetchPost = async () => {
       try {
+        // On récupère le post pour le préremplir
         const res = await fetch(`http://localhost:8081/posts/${id}`);
-        const data = await res.json();
         if (!res.ok) {
+          const data = await res.json();
           setError(data.error || 'Erreur lors du chargement du post.');
-        } else {
-          setTitle(data.title);
-          setContent(data.content);
+          return;
         }
+        const data = await res.json();
+        setTitle(data.title);
+        setContent(data.content);
       } catch (err) {
-        setError('Erreur réseau.');
+        console.error(err);
+        setError('Erreur réseau lors du chargement du post.');
       }
     };
     fetchPost();
   }, [id]);
 
+  // Soumettre la modification
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Utilisateur non connecté.');
+      return;
+    }
     try {
-      const token = localStorage.getItem('token');
       const res = await fetch(`http://localhost:8081/posts/${id}`, {
         method: 'PUT',
         headers: {
@@ -40,14 +50,15 @@ function EditPost() {
         },
         body: JSON.stringify({ title, content })
       });
-      const data = await res.json();
       if (!res.ok) {
+        const data = await res.json();
         setError(data.error || 'Erreur lors de la modification du post.');
       } else {
         navigate(`/posts/${id}`);
       }
     } catch (err) {
-      setError('Erreur réseau.');
+      console.error(err);
+      setError('Erreur réseau lors de la modification du post.');
     }
   };
 

@@ -1,6 +1,7 @@
 // src/components/Posts/AddPost.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ImageUpload from '../upload/ImageUpload';  // Chemin corrigé
 import '../../styles/AddPost.css';
 
 function AddPost() {
@@ -8,8 +9,11 @@ function AddPost() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [categoryId, setCategoryId] = useState('');
-  const [categories, setCategories] = useState([]);
+  const [imageUrl, setImageUrl] = useState('');
   const [error, setError] = useState('');
+
+  const [categories, setCategories] = useState([]);
+  const postImageEndpoint = 'http://localhost:8081/upload/post-image';
 
   useEffect(() => {
     fetch('http://localhost:8081/categories')
@@ -21,20 +25,19 @@ function AddPost() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
     try {
-      const token = localStorage.getItem('token'); // On récupère le token stocké lors du login
+      const token = localStorage.getItem('token');
       const res = await fetch('http://localhost:8081/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` // On envoie le token
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           title,
           content,
-          category_id: categoryId
-          // plus besoin d'envoyer user_id
+          category_id: categoryId,
+          image_url: imageUrl
         })
       });
       const data = await res.json();
@@ -88,6 +91,12 @@ function AddPost() {
             ))}
           </select>
         </div>
+        {/* Composant d'upload d'image */}
+        <ImageUpload 
+          endpoint={postImageEndpoint} 
+          onUploadSuccess={(url) => setImageUrl(url)}
+        />
+        {imageUrl && <p>Image uploadée : <a href={imageUrl}>{imageUrl}</a></p>}
         <button type="submit" className="btn">Publier</button>
       </form>
     </div>

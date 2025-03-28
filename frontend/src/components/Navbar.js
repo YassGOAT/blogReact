@@ -1,6 +1,6 @@
 // src/components/Navbar.js
 import React, { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../styles/Navbar.css';
 
 function Navbar() {
@@ -10,6 +10,7 @@ function Navbar() {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate(); // Ajout de useNavigate
 
   // Récupération des infos de l'utilisateur connecté
   useEffect(() => {
@@ -25,14 +26,14 @@ function Navbar() {
           }
         })
         .catch(err => {
-          // Gestion silencieuse de l'erreur, ou afficher une alerte si nécessaire
+          // Gestion silencieuse de l'erreur
         });
     }
   }, []);
 
   // Récupération de tous les utilisateurs pour la recherche
   useEffect(() => {
-    fetch('http://localhost:8081/utilisateur')
+    fetch('http://localhost:8081/users')
       .then(res => res.json())
       .then(data => setAllUsers(data))
       .catch(err => {
@@ -40,19 +41,27 @@ function Navbar() {
       });
   }, []);
 
-  // Filtrage des utilisateurs en fonction du terme de recherche
+  // Filtrage des utilisateurs en fonction du terme de recherche et exclusion des admin/superadmin
   useEffect(() => {
     const term = userSearchTerm.toLowerCase();
     if (term === '') {
       setFilteredUsers([]);
     } else {
       const filtered = allUsers.filter(user =>
-        user.username.toLowerCase().includes(term) ||
-        (user.email && user.email.toLowerCase().includes(term))
+        (user.username.toLowerCase().includes(term) ||
+          (user.email && user.email.toLowerCase().includes(term))) &&
+        (user.role !== "admin" && user.role !== "superadmin")
       );
       setFilteredUsers(filtered);
     }
   }, [userSearchTerm, allUsers]);
+
+  // Fonction de déconnexion
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setLoggedUser(null);
+    navigate('/login');
+  };
 
   // Fermer le dropdown en cliquant en dehors
   useEffect(() => {
@@ -114,6 +123,7 @@ function Navbar() {
                   <Link to="/account" className="dropdown-item">Voir profil</Link>
                   <Link to="/account?tab=posts" className="dropdown-item">Voir posts</Link>
                   <Link to="/account?tab=comments" className="dropdown-item">Voir commentaires</Link>
+                  <Link to="#" className="dropdown-item" onClick={handleLogout}>Déconnexion</Link>
                 </div>
               )}
             </div>
