@@ -22,8 +22,9 @@ function Login() {
       if (!res.ok) {
         setError(data.error || 'Erreur lors de la connexion.');
       } else {
+        // Stocker token et currentUserId
         localStorage.setItem('token', data.token);
-        // Redirige vers la page d'accueil via react-router
+        localStorage.setItem('currentUserId', data.userId);
         navigate('/');
       }
     } catch (err) {

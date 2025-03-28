@@ -10,17 +10,25 @@ function Account() {
   const [activeTab, setActiveTab] = useState('posts');
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredPosts, setFilteredPosts] = useState([]);
+  const [favorites, setFavorites] = useState([]);
   const location = useLocation();
 
-  // Photo de profil
+  // États pour photo de profil et bannière
   const [profilePic, setProfilePic] = useState('');
-  const DEFAULT_PROFILE_IMAGE = 'http://localhost:8081/uploads/default-profile.jpg';
-
-  // Bannière
   const [bannerPic, setBannerPic] = useState('');
+  const DEFAULT_PROFILE_IMAGE = 'http://localhost:8081/uploads/default-profile.jpg';
   const DEFAULT_BANNER_IMAGE = 'http://localhost:8081/uploads/default-banner.jpg';
 
-  // Charger la page : posts, commentaires, profil
+  // Gestion de l'onglet depuis l'URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab === 'posts' || tab === 'comments' || tab === 'favorites') {
+      setActiveTab(tab);
+    }
+  }, [location.search]);
+
+  // Récupération des infos du compte
   const fetchAccount = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -33,34 +41,19 @@ function Account() {
       } else {
         setAccountData(data);
         if (data.posts) setFilteredPosts(data.posts);
-
-        // Mettre PP et bannière par défaut si vide
-        const currentPic = data.profile.profile_picture || DEFAULT_PROFILE_IMAGE;
-        setProfilePic(currentPic);
-
-        const currentBanner = data.profile.banner_image || DEFAULT_BANNER_IMAGE;
-        setBannerPic(currentBanner);
+        setProfilePic(data.profile.profile_picture || DEFAULT_PROFILE_IMAGE);
+        setBannerPic(data.profile.banner_image || DEFAULT_BANNER_IMAGE);
       }
     } catch (err) {
       setError('Erreur réseau.');
     }
   };
 
-  // Lire ?tab=comments ou ?tab=posts
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const tab = params.get('tab');
-    if (tab === 'comments' || tab === 'posts') {
-      setActiveTab(tab);
-    }
-  }, [location.search]);
-
-  // Au montage
   useEffect(() => {
     fetchAccount();
   }, []);
 
-  // Filtrage des posts
+  // Filtrer les posts
   useEffect(() => {
     if (accountData && accountData.posts) {
       const term = searchTerm.toLowerCase();
@@ -71,7 +64,31 @@ function Account() {
     }
   }, [searchTerm, accountData]);
 
-  // Mise à jour de la photo de profil dans la BDD
+  // Récupérer les favoris lorsque l'onglet Favoris est actif
+  const fetchFavorites = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:8081/favorites', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Erreur lors de la récupération des favoris.');
+      } else {
+        setFavorites(data);
+      }
+    } catch (err) {
+      setError('Erreur réseau lors de la récupération des favoris.');
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'favorites') {
+      fetchFavorites();
+    }
+  }, [activeTab]);
+
+  // Mettre à jour la photo de profil
   const handleProfilePicUpdate = async () => {
     if (!accountData) return;
     const token = localStorage.getItem('token');
@@ -84,7 +101,7 @@ function Account() {
         },
         body: JSON.stringify({
           profile_picture: profilePic,
-          banner_image: accountData.profile.banner_image
+          banner_image: accountData.profile.banner_image // ne pas modifier ici la bannière
         })
       });
       const data = await res.json();
@@ -92,7 +109,7 @@ function Account() {
         setError(data.error || 'Erreur lors de la mise à jour de la photo de profil.');
       } else {
         alert('Photo de profil mise à jour avec succès.');
-        fetchAccount(); // Rafraîchit la page
+        fetchAccount();
       }
     } catch (err) {
       setError('Erreur réseau lors de la mise à jour de la PP.');
@@ -104,7 +121,7 @@ function Account() {
     setProfilePic(DEFAULT_PROFILE_IMAGE);
   };
 
-  // Mise à jour de la bannière dans la BDD
+  // Mettre à jour la bannière
   const handleBannerUpdate = async () => {
     if (!accountData) return;
     const token = localStorage.getItem('token');
@@ -125,7 +142,7 @@ function Account() {
         setError(data.error || 'Erreur lors de la mise à jour de la bannière.');
       } else {
         alert('Bannière mise à jour avec succès.');
-        fetchAccount(); // Rafraîchit la page
+        fetchAccount();
       }
     } catch (err) {
       setError('Erreur réseau lors de la mise à jour de la bannière.');
@@ -135,6 +152,25 @@ function Account() {
   // Supprimer la bannière
   const handleDeleteBanner = () => {
     setBannerPic(DEFAULT_BANNER_IMAGE);
+  };
+
+  // Retirer un favori
+  const handleRemoveFavorite = async (favoriteId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:8081/favorites/${favoriteId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'Erreur lors de la suppression du favori.');
+      } else {
+        setFavorites(prev => prev.filter(fav => fav.id !== favoriteId));
+      }
+    } catch (err) {
+      alert('Erreur réseau lors de la suppression du favori.');
+    }
   };
 
   if (error) {
@@ -153,7 +189,7 @@ function Account() {
   return (
     <div className="account-container">
       <h1>Mon Compte</h1>
-
+      
       {/* Bannière */}
       <div className="banner-section" style={{ backgroundImage: `url(${bannerPic})` }}>
         <div className="banner-controls">
@@ -168,14 +204,10 @@ function Account() {
         </div>
       </div>
 
+      {/* Section supérieure : Photo de profil et infos */}
       <div className="account-top-section">
-        {/* Photo de profil + actions */}
         <div className="account-photo-section">
-          <img 
-            src={profilePic} 
-            alt="Photo de profil" 
-            className="profile-picture" 
-          />
+          <img src={profilePic} alt="Photo de profil" className="profile-picture" />
           <div className="account-photo-actions">
             <ImageUpload
               endpoint="http://localhost:8081/upload/profile-image"
@@ -187,8 +219,6 @@ function Account() {
             </div>
           </div>
         </div>
-
-        {/* Infos user */}
         <div className="account-info-section">
           <p><strong>Nom d'utilisateur :</strong> {profile.username}</p>
           <p><strong>Bio :</strong> {profile.bio}</p>
@@ -209,9 +239,15 @@ function Account() {
         >
           Mes Commentaires
         </button>
+        <button
+          className={activeTab === 'favorites' ? 'active' : ''}
+          onClick={() => setActiveTab('favorites')}
+        >
+          Mes Favoris
+        </button>
       </div>
 
-      {/* Posts */}
+      {/* Contenu des onglets */}
       {activeTab === 'posts' && (
         <div className="tab-content">
           <h3>Mes Posts</h3>
@@ -241,7 +277,6 @@ function Account() {
         </div>
       )}
 
-      {/* Commentaires */}
       {activeTab === 'comments' && (
         <div className="tab-content">
           <h3>Mes Commentaires</h3>
@@ -254,6 +289,37 @@ function Account() {
                   <Link to={`/posts/${comment.post_id}`}>
                     {comment.content}
                   </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'favorites' && (
+        <div className="tab-content">
+          <h3>Mes Favoris</h3>
+          {favorites.length === 0 ? (
+            <p>Aucun favori ajouté.</p>
+          ) : (
+            <ul className="favorites-list">
+              {favorites.map(fav => (
+                <li key={fav.id} className="favorite-item">
+                  <Link to={`/users/${fav.favorite_user_id}`} className="favorite-link">
+                    <img
+                      src={fav.profile_picture || DEFAULT_PROFILE_IMAGE}
+                      alt={fav.username}
+                      className="favorite-avatar"
+                    />
+                    <span className="favorite-username">{fav.username}</span>
+                  </Link>
+                  <button 
+                    onClick={() => handleRemoveFavorite(fav.id)} 
+                    className="favorite-remove-btn" 
+                    title="Retirer des favoris"
+                  >
+                    <i className="fa fa-star" style={{ color: '#ffc107' }}></i>
+                  </button>
                 </li>
               ))}
             </ul>

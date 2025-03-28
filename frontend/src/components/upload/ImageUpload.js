@@ -2,27 +2,28 @@
 import React, { useState } from 'react';
 
 function ImageUpload({ endpoint, onUploadSuccess }) {
+  const [file, setFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [uploadError, setUploadError] = useState('');
   const [uploading, setUploading] = useState(false);
 
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    setFile(selectedFile);
+    setPreviewUrl(selectedFile ? URL.createObjectURL(selectedFile) : null);
+  };
 
-    // Vérifier que c'est bien une image
-    if (!file.type.startsWith('image/')) {
-      setUploadError('Seuls les fichiers images sont autorisés.');
+  const handleUpload = async () => {
+    if (!file) {
+      setUploadError('Veuillez sélectionner un fichier.');
       return;
     }
-
     setUploading(true);
     setUploadError('');
-
+    const formData = new FormData();
+    formData.append('image', file);
     try {
       const token = localStorage.getItem('token');
-      const formData = new FormData();
-      formData.append('image', file);
-
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -30,12 +31,10 @@ function ImageUpload({ endpoint, onUploadSuccess }) {
         },
         body: formData
       });
-
       const data = await res.json();
       if (!res.ok) {
         setUploadError(data.error || 'Erreur lors de l’upload.');
       } else {
-        // Renvoie l'URL de l'image au parent
         onUploadSuccess(data.imageUrl);
       }
     } catch (error) {
@@ -47,12 +46,15 @@ function ImageUpload({ endpoint, onUploadSuccess }) {
 
   return (
     <div>
-      <input 
-        type="file" 
-        accept="image/*" 
-        onChange={handleFileChange}
-        disabled={uploading}
-      />
+      <input type="file" accept="image/*" onChange={handleFileChange} />
+      {previewUrl && (
+        <div style={{ margin: '10px 0' }}>
+          <img src={previewUrl} alt="Prévisualisation" style={{ width: '80px', borderRadius: '4px' }} />
+        </div>
+      )}
+      <button onClick={handleUpload} disabled={uploading}>
+        {uploading ? 'Téléchargement…' : 'Importer l’image'}
+      </button>
       {uploadError && <p style={{ color: 'red' }}>{uploadError}</p>}
     </div>
   );
