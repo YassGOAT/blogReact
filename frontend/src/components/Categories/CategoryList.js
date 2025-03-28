@@ -26,7 +26,6 @@ function CategoryList() {
     setCurrentPage(1);
   }, [searchTerm, categories]);
 
-  // Pagination
   const indexOfLast = currentPage * categoriesPerPage;
   const indexOfFirst = indexOfLast - categoriesPerPage;
   const currentCategories = filteredCategories.slice(indexOfFirst, indexOfLast);
@@ -52,8 +51,18 @@ function CategoryList() {
           <p>Aucune catégorie trouvée.</p>
         ) : (
           currentCategories.map((category) => (
-            <div key={category.id} className="category-block">
-              <Link to={`/categories/${category.id}`}>{category.name}</Link>
+            <div 
+              key={category.id} 
+              className="category-block"
+              style={{
+                backgroundImage: category.image_url ? `url(${category.image_url})` : 'none',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              }}
+            >
+              <Link to={`/categories/${category.id}`} className="category-link">
+                <span className="category-name">{category.name}</span>
+              </Link>
             </div>
           ))
         )}

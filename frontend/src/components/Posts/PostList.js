@@ -10,17 +10,13 @@ function PostList() {
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 12;
 
-  // Récupération des posts
   useEffect(() => {
     fetch('http://localhost:8081/posts')
       .then(res => res.json())
       .then(data => setPosts(data))
-      .catch(() => {
-        // Gestion d'erreur si nécessaire
-      });
+      .catch(() => {});
   }, []);
 
-  // Filtrage selon le terme de recherche
   useEffect(() => {
     const term = searchTerm.toLowerCase();
     const filtered = posts.filter(post =>
@@ -31,7 +27,6 @@ function PostList() {
     setCurrentPage(1);
   }, [searchTerm, posts]);
 
-  // Pagination
   const indexOfLast = currentPage * postsPerPage;
   const indexOfFirst = indexOfLast - postsPerPage;
   const currentPosts = filteredPosts.slice(indexOfFirst, indexOfLast);
@@ -60,6 +55,11 @@ function PostList() {
         ) : (
           currentPosts.map((post) => (
             <div key={post.id} className="post-item">
+              {post.image_url && (
+                <div className="post-thumbnail">
+                  <img src={post.image_url} alt="Thumbnail" />
+                </div>
+              )}
               <h3>
                 <Link to={`/posts/${post.id}`}>{post.title}</Link>
               </h3>

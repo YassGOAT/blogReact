@@ -15,7 +15,6 @@ function PostDetails() {
   const [showOptions, setShowOptions] = useState(false);
 
   useEffect(() => {
-    // Récupérer le post
     fetch(`http://localhost:8081/posts/${id}`)
       .then(res => res.json())
       .then(data => {
@@ -29,7 +28,6 @@ function PostDetails() {
   }, [id]);
 
   useEffect(() => {
-    // Récupérer les commentaires du post
     fetch(`http://localhost:8081/posts/${id}/comments`)
       .then(res => res.json())
       .then(data => setComments(data))
@@ -37,7 +35,6 @@ function PostDetails() {
   }, [id]);
 
   useEffect(() => {
-    // Récupérer les infos de l'utilisateur connecté
     const token = localStorage.getItem('token');
     if (token) {
       fetch('http://localhost:8081/account', {
@@ -53,17 +50,11 @@ function PostDetails() {
     }
   }, []);
 
-  // Détermine si l'utilisateur est l'auteur
   const isAuthor = loggedUser && post && loggedUser.id === post.user_id;
-  // Détermine si l'utilisateur est admin/superadmin
   const isAdmin = loggedUser && loggedUser.role && ['admin', 'superadmin'].includes(loggedUser.role.toLowerCase());
-
-  // canEdit = seulement si c'est l'auteur
   const canEdit = isAuthor;
-  // canDelete = auteur OU admin/superadmin
   const canDelete = isAuthor || isAdmin;
 
-  // Fonction de suppression
   const handleDelete = async () => {
     if (window.confirm("Voulez-vous vraiment supprimer ce post ?")) {
       const token = localStorage.getItem('token');
@@ -102,6 +93,11 @@ function PostDetails() {
   return (
     <div className="postdetails-container">
       <h2>{post.title}</h2>
+      {post.image_url && (
+        <div className="post-image">
+          <img src={post.image_url} alt="Image du post" />
+        </div>
+      )}
       <p className="post-meta">
         Par <strong>{post.username || 'Inconnu'}</strong>
         {post.category && <> – {post.category}</>}
@@ -136,14 +132,14 @@ function PostDetails() {
       <section className="comments-section">
         <h3>Commentaires</h3>
         <CommentList comments={comments} />
-        <CommentForm
-          postId={id}
+        <CommentForm 
+          postId={id} 
           onCommentAdded={() => {
             fetch(`http://localhost:8081/posts/${id}/comments`)
               .then(res => res.json())
               .then(data => setComments(data))
               .catch(() => setComments([]));
-          }}
+          }} 
         />
       </section>
     </div>

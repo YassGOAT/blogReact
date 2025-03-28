@@ -13,20 +13,19 @@ const jwtSecret = process.env.JWT_SECRET || 'votre_secret';
 app.use(cors());
 app.use(express.json());
 
-// Configuration de Multer pour l'upload d'images
+// Configuration de Multer pour gérer l'upload d'images
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Assurez-vous que le dossier "uploads" existe dans la racine de votre projet
-    cb(null, 'uploads/');
+    // Le dossier "uploads" doit être dans votre dossier backend
+    cb(null, path.join(__dirname, 'uploads'));
   },
   filename: (req, file, cb) => {
-    // Génère un nom unique à l'aide d'un timestamp et de l'extension originale
+    // On génère un nom unique avec le timestamp
     const ext = path.extname(file.originalname);
     cb(null, Date.now() + ext);
   }
 });
 const fileFilter = (req, file, cb) => {
-  // Accepter uniquement les fichiers images
   if (file.mimetype.startsWith('image/')) {
     cb(null, true);
   } else {
@@ -36,10 +35,11 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 } // Limite 5MB
+  limits: { fileSize: 5 * 1024 * 1024 } // Limite à 5MB
 });
+
 // Exposer le dossier uploads en statique
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Connexion à la base de données MySQL
 const db = mysql.createConnection({
@@ -62,7 +62,7 @@ const verifyToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   if (!authHeader)
     return res.status(403).json({ error: 'No token provided' });
-  const token = authHeader.split(' ')[1];
+  const token = authHeader.split(' ')[1]; // Format : "Bearer <token>"
   jwt.verify(token, jwtSecret, (err, decoded) => {
     if (err) return res.status(401).json({ error: 'Invalid or expired token' });
     req.user = decoded; // { id, email }
@@ -73,6 +73,8 @@ const verifyToken = (req, res, next) => {
 // ----------------------
 // ENDPOINTS DE BASE
 // ----------------------
+
+// Test et racine
 app.get('/test', (req, res) => {
   res.json({ message: 'Le serveur fonctionne correctement.' });
 });
@@ -136,11 +138,10 @@ app.get('/users/:id', (req, res) => {
   });
 });
 
-// Mettre à jour la photo de profil et bannière
+// Endpoint pour mettre à jour la photo de profil et la bannière
 app.put('/users/:id/profile', verifyToken, (req, res) => {
   const userId = req.params.id;
-  const tokenUserId = req.user.id;
-  if (userId != tokenUserId) {
+  if (userId != req.user.id) {
     return res.status(403).json({ error: 'Not authorized to update this profile' });
   }
   const { profile_picture, banner_image } = req.body;
@@ -402,52 +403,6 @@ app.get('/comments', (req, res) => {
   db.query(query, (err, results) => {
     if (err) return res.status(500).json({ error: 'Erreur lors de la récupération des commentaires.' });
     res.json(results);
-  });
-});
-
-// ----------------------
-// ENDPOINTS D'UPLOAD D'IMAGES
-// ----------------------
-
-// Pour les posts : L'auteur peut uploader une image pour son post
-app.post('/upload/post-image', verifyToken, upload.single('image'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'No file uploaded' });
-  }
-  const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-  res.json({ message: 'Post image uploaded successfully', imageUrl });
-});
-
-// Pour les catégories : Seuls les admin/superadmin peuvent uploader une image
-app.post('/upload/category-image', verifyToken, upload.single('image'), (req, res) => {
-  const userId = req.user.id;
-  const userQuery = 'SELECT * FROM users WHERE id = ?';
-  db.query(userQuery, [userId], (err, userResults) => {
-    if (err) return res.status(500).json({ error: err });
-    if (userResults.length === 0) return res.status(404).json({ error: 'User not found' });
-    const user = userResults[0];
-    if (!user.role || !['admin', 'superadmin'].includes(user.role.toLowerCase())) {
-      return res.status(403).json({ error: 'Not authorized to upload category image' });
-    }
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
-    }
-    const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-    res.json({ message: 'Category image uploaded successfully', imageUrl });
-  });
-});
-
-// Pour la photo de profil : L'utilisateur peut uploader son image de profil
-app.post('/upload/profile-image', verifyToken, upload.single('image'), (req, res) => {
-  const userId = req.user.id;
-  if (!req.file) {
-    return res.status(400).json({ error: 'No file uploaded' });
-  }
-  const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-  const updateQuery = 'UPDATE users SET profile_picture = ? WHERE id = ?';
-  db.query(updateQuery, [imageUrl, userId], (err, result) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json({ message: 'Profile image updated successfully', imageUrl });
   });
 });
 

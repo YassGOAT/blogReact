@@ -170,3 +170,12 @@
 .confirm-no {
   background-color: #6c757d;
 }
+
+/* Exemple dans PostList.css */
+.post-thumbnail img {
+  width: 100%;
+  height: auto;
+  max-height: 150px;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
