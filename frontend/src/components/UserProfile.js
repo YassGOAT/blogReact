@@ -9,17 +9,17 @@ function UserProfile() {
   const [error, setError] = useState('');
   const [isFavorite, setIsFavorite] = useState(false);
 
-  // Récupérez l'ID de l'utilisateur connecté depuis localStorage (assurez-vous de le définir lors du login)
+  // Récupérer l'ID de l'utilisateur connecté stocké lors du login
   const currentUserId = localStorage.getItem('currentUserId');
 
-  // Récupération du profil de l'utilisateur consulté
+  // Récupérer le profil de l'utilisateur consulté
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const res = await fetch(`http://localhost:8081/users/${id}`);
         const data = await res.json();
         if (!res.ok) {
-          setError(data.error || 'Erreur lors de la récupération de l’utilisateur.');
+          setError(data.error || 'Erreur lors de la récupération du profil.');
         } else {
           setUser(data);
         }
@@ -30,7 +30,7 @@ function UserProfile() {
     fetchUser();
   }, [id]);
 
-  // Récupération de la liste des favoris du user connecté
+  // Récupérer la liste des favoris du user connecté pour vérifier si l'utilisateur consulté y figure
   const fetchFavorites = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -39,12 +39,11 @@ function UserProfile() {
       });
       const data = await res.json();
       if (res.ok) {
-        // Vérifier si l'utilisateur consulté est déjà favori
-        const found = data.some(fav => String(fav.favorite_user_id) === id);
-        setIsFavorite(found);
+        const favExists = data.some(fav => String(fav.favorite_user_id) === id);
+        setIsFavorite(favExists);
       }
     } catch (err) {
-      console.error('Erreur lors de la récupération des favoris', err);
+      console.error("Erreur lors de la récupération des favoris", err);
     }
   };
 
@@ -54,7 +53,7 @@ function UserProfile() {
     }
   }, [currentUserId, id]);
 
-  // Toggle pour ajouter ou retirer l'utilisateur des favoris
+  // Fonction de basculement du favori
   const handleToggleFavorite = async () => {
     const token = localStorage.getItem('token');
     if (!isFavorite) {
@@ -79,9 +78,8 @@ function UserProfile() {
         alert('Erreur réseau.');
       }
     } else {
-      // Pour retirer, on récupère l'ID de l'entrée favorite
+      // Retirer des favoris
       try {
-        const token = localStorage.getItem('token');
         const resFav = await fetch('http://localhost:8081/favorites', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -107,7 +105,11 @@ function UserProfile() {
   };
 
   if (error) {
-    return <div className="userprofile-container"><p className="error">{error}</p></div>;
+    return (
+      <div className="userprofile-container">
+        <p className="error">{error}</p>
+      </div>
+    );
   }
   if (!user) {
     return <div className="userprofile-container">Chargement...</div>;
@@ -116,27 +118,22 @@ function UserProfile() {
   return (
     <div className="userprofile-container">
       <div className="user-header">
-        <img 
-          src={user.profile_picture || 'http://localhost:8081/uploads/default-profile.jpg'} 
-          alt="Photo de profil" 
-          className="profile-picture" 
+        <img
+          src={user.profile_picture || 'http://localhost:8081/uploads/default-profile.jpg'}
+          alt="Photo de profil"
+          className="profile-picture"
         />
-        <h2>{user.username}</h2>
-        {/* Afficher le bouton de favoris seulement si le profil consulté n'est pas celui du user connecté */}
+      <h2>{user.username}</h2>
         {currentUserId && String(currentUserId) !== id && (
-          <button onClick={handleToggleFavorite} className="favorite-toggle-btn" title="Ajouter aux favoris">
-            {isFavorite ? (
-              <i className="fa fa-star" style={{ color: '#ffc107' }}></i>
-            ) : (
-              <i className="fa fa-star-o" style={{ color: '#ccc' }}></i>
-            )}
+          <button onClick={handleToggleFavorite} className="favorite-toggle-btn">
+            {isFavorite ? <i className="fa fa-star" /> : <i className="fa fa-star-o" />}
           </button>
         )}
+
       </div>
       <p><strong>Email :</strong> {user.email}</p>
       <p><strong>Bio :</strong> {user.bio}</p>
       <p><strong>Rôle :</strong> {user.role}</p>
-      <p><strong>Favoris :</strong>{user.favorites}</p>
     </div>
   );
 }

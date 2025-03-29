@@ -139,14 +139,38 @@ app.get('/users', (req, res) => {
 });
 
 app.get('/users/:id', (req, res) => {
-  const userId = req.params.id;
-  const query = 'SELECT id, username, email, bio, role, profile_picture, banner_image FROM users WHERE id = ?';
+  // Convertir l'ID en entier
+  const userId = parseInt(req.params.id, 10);
+  
+  // Vérifier si l'ID est bien un nombre
+  if (Number.isNaN(userId)) {
+    console.log("Paramètre ID invalide :", req.params.id);
+    return res.status(400).json({ error: 'Invalid user ID param' });
+  }
+
+  console.log("Requête pour l'utilisateur ID =", userId);
+
+  const query = `
+    SELECT id, username, email, bio, role, profile_picture, banner_image
+    FROM users
+    WHERE id = ?
+  `;
   db.query(query, [userId], (err, results) => {
-    if (err) return res.status(500).json({ error: err });
-    if (results.length === 0) return res.status(404).json({ error: 'User not found' });
+    if (err) {
+      console.error("Erreur DB :", err);
+      return res.status(500).json({ error: err });
+    }
+
+    console.log("Résultats pour l'ID =", userId, " => ", results);
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
     res.json(results[0]);
   });
 });
+
 
 // Mise à jour du profil (photo + bannière)
 app.put('/users/:id/profile', verifyToken, (req, res) => {
@@ -185,10 +209,8 @@ app.get('/account', verifyToken, (req, res) => {
   });
 });
 
-// -------------------
-// FAVORIS
-// -------------------
-// POST /favorites (body: { favorite_user_id })
+// --- FAVORIS ENDPOINTS ---
+// POST /favorites : ajouter un favori (body: { favorite_user_id })
 app.post('/favorites', verifyToken, (req, res) => {
   const userId = req.user.id;
   const { favorite_user_id } = req.body;
@@ -202,7 +224,7 @@ app.post('/favorites', verifyToken, (req, res) => {
   });
 });
 
-// GET /favorites : liste des favoris du user connecté
+// GET /favorites : liste des favoris de l'utilisateur connecté
 app.get('/favorites', verifyToken, (req, res) => {
   const userId = req.user.id;
   const query = `
@@ -217,7 +239,7 @@ app.get('/favorites', verifyToken, (req, res) => {
   });
 });
 
-// DELETE /favorites/:id
+// DELETE /favorites/:id : supprimer un favori
 app.delete('/favorites/:id', verifyToken, (req, res) => {
   const favoriteId = req.params.id;
   const userId = req.user.id;
@@ -234,6 +256,7 @@ app.delete('/favorites/:id', verifyToken, (req, res) => {
     });
   });
 });
+
 
 // -------------------
 // CATEGORIES
