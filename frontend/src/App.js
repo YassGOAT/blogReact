@@ -14,7 +14,6 @@ import CategoryList from './components/Categories/CategoryList';
 import CategoryPosts from './components/Categories/CategoryPosts';
 import AddCategory from './components/Categories/AddCategory';
 import UserProfile from './components/UserProfile';
-import Favorites from './components/Favorites';
 function App() {
   return (
     <Router>
@@ -32,7 +31,6 @@ function App() {
           <Route path="/categories/:id" element={<CategoryPosts />} />
           <Route path="/add-category" element={<AddCategory />} />
           <Route path="/users/:id" element={<UserProfile />} />
-          <Route path="/favorites" element={<Favorites />} />
         </Routes>
       </Layout>
     </Router>
