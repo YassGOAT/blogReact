@@ -14,15 +14,16 @@ app.use(cors());
 app.use(express.json());
 
 // -------------------
-// Config Multer
+// Configuration Multer
 // -------------------
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // IMPORTANT : dossier uploads à côté de server.js
+    // Le dossier "uploads" doit être dans le même dossier que server.js
     cb(null, path.join(__dirname, 'uploads'));
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
+    // Génération d'un nom unique basé sur le timestamp
     cb(null, Date.now() + ext);
   }
 });
@@ -36,10 +37,10 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }
+  limits: { fileSize: 5 * 1024 * 1024 } // Limite 5MB
 });
 
-// Expose le dossier uploads en statique
+// Exposer le dossier uploads en statique
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // -------------------
@@ -48,10 +49,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '', // Ajustez selon votre config
+  password: '', // Ajustez selon votre configuration
   database: 'blog'
 });
-
 db.connect((err) => {
   if (err) {
     console.error('Erreur de connexion MySQL :', err);
@@ -61,23 +61,22 @@ db.connect((err) => {
 });
 
 // -------------------
-// Middleware JWT
+// Middleware de vérification du token JWT
 // -------------------
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
-  if (!authHeader) {
+  if (!authHeader)
     return res.status(403).json({ error: 'No token provided' });
-  }
   const token = authHeader.split(' ')[1];
   jwt.verify(token, jwtSecret, (err, decoded) => {
     if (err) return res.status(401).json({ error: 'Invalid or expired token' });
-    req.user = decoded; // { id, email }
+    req.user = decoded; // Contient { id, email }
     next();
   });
 };
 
 // -------------------
-// TEST + Racine
+// Endpoints de base
 // -------------------
 app.get('/test', (req, res) => {
   res.json({ message: 'Le serveur fonctionne correctement.' });
@@ -87,7 +86,7 @@ app.get('/', (req, res) => {
 });
 
 // -------------------
-// USERS : register, login, ...
+// USERS : Register, Login, GET /users/:id, Mise à jour du profil
 // -------------------
 app.post('/register', (req, res) => {
   const { username, email, password, bio, role, profile_picture, banner_image } = req.body;
@@ -139,40 +138,24 @@ app.get('/users', (req, res) => {
 });
 
 app.get('/users/:id', (req, res) => {
-  // Convertir l'ID en entier
   const userId = parseInt(req.params.id, 10);
-  
-  // Vérifier si l'ID est bien un nombre
   if (Number.isNaN(userId)) {
-    console.log("Paramètre ID invalide :", req.params.id);
     return res.status(400).json({ error: 'Invalid user ID param' });
   }
-
-  console.log("Requête pour l'utilisateur ID =", userId);
-
   const query = `
     SELECT id, username, email, bio, role, profile_picture, banner_image
     FROM users
     WHERE id = ?
   `;
   db.query(query, [userId], (err, results) => {
-    if (err) {
-      console.error("Erreur DB :", err);
-      return res.status(500).json({ error: err });
-    }
-
-    console.log("Résultats pour l'ID =", userId, " => ", results);
-
+    if (err) return res.status(500).json({ error: err });
     if (results.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
-
     res.json(results[0]);
   });
 });
 
-
-// Mise à jour du profil (photo + bannière)
 app.put('/users/:id/profile', verifyToken, (req, res) => {
   const userId = req.params.id;
   if (parseInt(userId, 10) !== req.user.id) {
@@ -187,14 +170,14 @@ app.put('/users/:id/profile', verifyToken, (req, res) => {
 });
 
 // -------------------
-// ACCOUNT : infos user + posts + comments
+// ACCOUNT : infos utilisateur, posts, commentaires
 // -------------------
 app.get('/account', verifyToken, (req, res) => {
   const userId = req.user.id;
   const userQuery = 'SELECT id, username, email, bio, role, profile_picture, banner_image FROM users WHERE id = ?';
   const postsQuery = 'SELECT id, title, content, image_url, created_at FROM posts WHERE user_id = ?';
   const commentsQuery = 'SELECT id, content, post_id FROM comments WHERE user_id = ?';
-
+  
   db.query(userQuery, [userId], (err, userResults) => {
     if (err) return res.status(500).json({ error: err });
     if (userResults.length === 0) return res.status(404).json({ error: 'User not found' });
@@ -209,93 +192,8 @@ app.get('/account', verifyToken, (req, res) => {
   });
 });
 
-// --- FAVORIS ENDPOINTS ---
-// POST /favorites : ajouter un favori (body: { favorite_user_id })
-app.post('/favorites', verifyToken, (req, res) => {
-  const userId = req.user.id;
-  const { favorite_user_id } = req.body;
-  if (!favorite_user_id) {
-    return res.status(400).json({ error: 'favorite_user_id is required' });
-  }
-  const query = 'INSERT INTO favorites (user_id, favorite_user_id) VALUES (?, ?)';
-  db.query(query, [userId, favorite_user_id], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ message: 'Favorite added successfully', favoriteId: result.insertId });
-  });
-});
-
-// GET /favorites : liste des favoris de l'utilisateur connecté
-app.get('/favorites', verifyToken, (req, res) => {
-  const userId = req.user.id;
-  const query = `
-    SELECT f.id, u.id as favorite_user_id, u.username, u.profile_picture
-    FROM favorites f
-    JOIN users u ON f.favorite_user_id = u.id
-    WHERE f.user_id = ?
-  `;
-  db.query(query, [userId], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
-  });
-});
-
-// DELETE /favorites/:id : supprimer un favori
-app.delete('/favorites/:id', verifyToken, (req, res) => {
-  const favoriteId = req.params.id;
-  const userId = req.user.id;
-  const checkQuery = 'SELECT * FROM favorites WHERE id = ? AND user_id = ?';
-  db.query(checkQuery, [favoriteId, userId], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (results.length === 0) {
-      return res.status(403).json({ error: 'Not authorized to delete this favorite' });
-    }
-    const deleteQuery = 'DELETE FROM favorites WHERE id = ?';
-    db.query(deleteQuery, [favoriteId], (err2) => {
-      if (err2) return res.status(500).json({ error: err2.message });
-      res.json({ message: 'Favorite removed successfully' });
-    });
-  });
-});
-
-
 // -------------------
-// CATEGORIES
-// -------------------
-app.post('/categories', verifyToken, (req, res) => {
-  const { name, image_url } = req.body;
-  if (!name) {
-    return res.status(400).json({ error: 'Le nom de la catégorie est requis.' });
-  }
-  // Vérif admin
-  const userId = req.user.id;
-  const userQuery = 'SELECT * FROM users WHERE id = ?';
-  db.query(userQuery, [userId], (err, userResults) => {
-    if (err) return res.status(500).json({ error: err });
-    if (userResults.length === 0) return res.status(404).json({ error: 'User not found' });
-    const user = userResults[0];
-    if (!user.role || !['admin', 'superadmin'].includes(user.role.toLowerCase())) {
-      return res.status(403).json({ error: 'Not authorized to create category' });
-    }
-    const query = 'INSERT INTO categories (name, image_url) VALUES (?, ?)';
-    db.query(query, [name, image_url || ''], (err2, result) => {
-      if (err2) return res.status(500).json({ error: err2 });
-      res.json({ message: 'Catégorie créée avec succès', categoryId: result.insertId });
-    });
-  });
-});
-
-app.get('/categories', (req, res) => {
-  const query = 'SELECT * FROM categories ORDER BY name ASC';
-  db.query(query, (err, results) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json(results);
-  });
-});
-
-// etc. get /categories/:id, /categories/:id/posts, ...
-
-// -------------------
-// POSTS
+// POSTS ENDPOINTS
 // -------------------
 app.get('/posts', (req, res) => {
   const query = `
@@ -331,7 +229,6 @@ app.get('/posts/:id', (req, res) => {
   });
 });
 
-// POST /posts
 app.post('/posts', verifyToken, (req, res) => {
   const { title, content, category_id, image_url } = req.body;
   const userId = req.user.id;
@@ -342,7 +239,6 @@ app.post('/posts', verifyToken, (req, res) => {
   db.query(query, [title, content, userId, image_url || ''], (err, result) => {
     if (err) return res.status(500).json({ error: err });
     const postId = result.insertId;
-    // associer category_id
     if (category_id) {
       const catQuery = 'INSERT INTO posts_categories (post_id, category_id) VALUES (?, ?)';
       db.query(catQuery, [postId, category_id], (err2) => {
@@ -353,7 +249,6 @@ app.post('/posts', verifyToken, (req, res) => {
   });
 });
 
-// PUT /posts/:id
 app.put('/posts/:id', verifyToken, (req, res) => {
   const { title, content, image_url } = req.body;
   const postId = req.params.id;
@@ -366,13 +261,12 @@ app.put('/posts/:id', verifyToken, (req, res) => {
     }
     const updateQuery = 'UPDATE posts SET title = ?, content = ?, image_url = ? WHERE id = ?';
     db.query(updateQuery, [title, content, image_url || '', postId], (err2) => {
-      if (err2) return res.status(500).json({ error: err2 });
+      if (err2) return res.status(500).json({ error: err2.message });
       res.json({ message: 'Post updated successfully' });
     });
   });
 });
 
-// DELETE /posts/:id
 app.delete('/posts/:id', verifyToken, (req, res) => {
   const postId = req.params.id;
   const userId = req.user.id;
@@ -393,13 +287,12 @@ app.delete('/posts/:id', verifyToken, (req, res) => {
       if (!isAuthor && !isAdmin) {
         return res.status(403).json({ error: 'Not authorized to delete this post' });
       }
-      // On supprime la liaison cat
       const deleteCatQuery = 'DELETE FROM posts_categories WHERE post_id = ?';
       db.query(deleteCatQuery, [postId], (err3) => {
-        if (err3) return res.status(500).json({ error: err3 });
+        if (err3) return res.status(500).json({ error: err3.message });
         const deletePostQuery = 'DELETE FROM posts WHERE id = ?';
         db.query(deletePostQuery, [postId], (err4) => {
-          if (err4) return res.status(500).json({ error: err4 });
+          if (err4) return res.status(500).json({ error: err4.message });
           res.json({ message: 'Post deleted successfully' });
         });
       });
@@ -408,7 +301,7 @@ app.delete('/posts/:id', verifyToken, (req, res) => {
 });
 
 // -------------------
-// COMMENTS
+// COMMENTS ENDPOINTS
 // -------------------
 app.post('/comments', verifyToken, (req, res) => {
   const { content, post_id } = req.body;
@@ -448,26 +341,22 @@ app.get('/comments', (req, res) => {
 });
 
 // -------------------
-// UPLOAD d'images
+// UPLOAD D'IMAGES ENDPOINTS
 // -------------------
 app.post('/upload/profile-image', verifyToken, upload.single('image'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'No file uploaded' });
-  }
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
   res.json({ message: 'Profile image uploaded successfully', imageUrl });
 });
 
 app.post('/upload/profile-banner', verifyToken, upload.single('image'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'No file uploaded' });
-  }
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
   res.json({ message: 'Banner image uploaded successfully', imageUrl });
 });
 
-// etc. /upload/post-image, /upload/category-image si besoin
-
+// -------------------
+// Lancement du serveur
 // -------------------
 app.listen(port, () => {
   console.log(`Serveur lancé sur le port ${port}`);

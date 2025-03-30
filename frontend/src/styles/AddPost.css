@@ -1,11 +1,11 @@
 /* src/styles/AddPost.css */
 .addpost-container {
-  padding: 20px;
   max-width: 600px;
   margin: 40px auto;
+  padding: 20px;
   background-color: #fff;
-  border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .addpost-container h2 {
@@ -14,35 +14,40 @@
 }
 
 .addpost-container .error {
-  color: red;
+  color: #dc3545;
   text-align: center;
 }
 
-.addpost-container .form {
+.form {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
 
-.addpost-container .form-group {
+.form-group {
   display: flex;
   flex-direction: column;
 }
 
-.addpost-container .input,
-.addpost-container .textarea {
+.input,
+.textarea {
   padding: 8px;
-  font-size: 16px;
+  font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 4px;
 }
 
-.addpost-container .btn {
+.btn {
   padding: 10px;
   background-color: #28a745;
   border: none;
   color: #fff;
-  font-size: 16px;
-  border-radius: 5px;
+  font-size: 1rem;
+  border-radius: 4px;
   cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn:hover {
+  background-color: #218838;
 }

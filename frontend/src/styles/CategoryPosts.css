@@ -1,23 +1,39 @@
+/* src/styles/CategoryPosts.css */
 .categoryposts-container {
-    padding: 20px;
-    max-width: 800px;
-    margin: 0 auto;
-  }
-  
-  .categoryposts-container h2 {
-    margin-bottom: 20px;
-  }
-  
-  .categoryposts-container ul {
-    list-style: none;
-    padding: 0;
-  }
-  
-  .categoryposts-container li {
-    margin-bottom: 10px;
-  }
-  
-  .categoryposts-container .link {
-    color: #007bff;
-  }
-  
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  text-align: center;
+}
+
+.categoryposts-container h2 {
+  margin-bottom: 20px;
+}
+
+.categoryposts-container input {
+  width: 100%;
+  max-width: 300px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.categoryposts-container ul {
+  list-style: none;
+  padding: 0;
+}
+
+.categoryposts-container li {
+  margin-bottom: 10px;
+}
+
+.categoryposts-container .link {
+  color: #007bff;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.categoryposts-container .link:hover {
+  color: #0056b3;
+}

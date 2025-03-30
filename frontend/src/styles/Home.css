@@ -1,49 +1,54 @@
 /* src/styles/Home.css */
+:root {
+  --hero-height: 400px;
+}
 
-/* Container global */
 .home-container {
-  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
   font-family: 'Roboto', sans-serif;
-  color: #202124;
+  color: #343a40;
   background-color: #fff;
 }
 
-/* Section Hero */
 .hero {
   position: relative;
   background: url('https://via.placeholder.com/1200x400?text=Hero+Image') center/cover no-repeat;
-  height: 400px;
+  height: var(--hero-height);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 40px;
 }
+
 .hero::after {
   content: "";
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  inset: 0;
   background-color: rgba(0, 0, 0, 0.4);
 }
+
 .hero-content {
   position: relative;
-  color: #fff;
   text-align: center;
+  color: #fff;
   z-index: 1;
   padding: 0 20px;
 }
-.hero h1 {
+
+.hero-content h1 {
   font-size: 3rem;
   margin-bottom: 20px;
 }
-.hero p {
+
+.hero-content p {
   font-size: 1.2rem;
   margin-bottom: 30px;
 }
+
 .hero .cta {
-  background-color: #4285F4;
+  background-color: #007bff;
   padding: 12px 25px;
   color: #fff;
   text-decoration: none;
@@ -51,63 +56,58 @@
   font-size: 1rem;
   transition: background 0.3s ease;
 }
+
 .hero .cta:hover {
-  background-color: #3367D6;
+  background-color: #0056b3;
 }
 
-/* Section À propos */
+/* Sections */
 .about-section {
   padding: 40px 20px;
-  background-color: #f1f3f4;
+  background-color: #f8f9fa;
   border-radius: 4px;
   margin-bottom: 40px;
   text-align: center;
 }
+
 .about-section h2 {
   font-size: 2rem;
   margin-bottom: 20px;
 }
+
 .about-section p {
   font-size: 1.1rem;
   margin-bottom: 20px;
 }
-.about-section .btn {
-  background-color: #4285F4;
-  padding: 10px 20px;
-  border-radius: 4px;
-  text-decoration: none;
-  color: #fff;
-  font-size: 1rem;
-  transition: background 0.3s ease;
-}
-.about-section .btn:hover {
-  background-color: #3367D6;
-}
 
-/* Section Catégories (carousel) */
+/* Carousel des catégories */
 .categories-section {
   margin-bottom: 40px;
   text-align: center;
 }
+
 .categories-section h2 {
   font-size: 2rem;
   margin-bottom: 20px;
 }
+
 .carousel-container {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  max-width: 800px;
   margin: 0 auto;
-  max-width: 800px; /* Ajuste selon tes besoins */
 }
+
 .categories-carousel {
   display: flex;
   gap: 15px;
   overflow: hidden;
-  width: 70%; /* Ajuste selon tes besoins */
+  width: 70%;
   justify-content: center;
 }
+
 .category-card {
   flex: 0 0 calc(33.33% - 10px);
   border: 1px solid #ccc;
@@ -116,52 +116,59 @@
   background-color: #f8f9fa;
   transition: transform 0.3s ease;
 }
+
 .category-card a {
   text-decoration: none;
   font-weight: bold;
-  color: #4285F4;
+  color: #007bff;
 }
+
 .category-card:hover {
   transform: scale(1.05);
 }
-/* Flèches */
+
 .arrow {
   background-color: transparent;
   border: none;
   font-size: 2rem;
   cursor: pointer;
-  color: #4285F4;
+  color: #007bff;
   padding: 10px;
 }
+
 .left-arrow {
   position: absolute;
   left: 0;
 }
+
 .right-arrow {
   position: absolute;
   right: 0;
 }
-/* Conteneur du bouton "Voir toutes les catégories" */
+
 .all-categories-btn-container {
   margin-top: 20px;
   text-align: center;
 }
 
-/* Section Articles récents */
+/* Posts récents */
 .recent-posts-section {
   margin-bottom: 40px;
   text-align: center;
 }
+
 .recent-posts-section h2 {
   font-size: 2rem;
   margin-bottom: 20px;
 }
+
 .posts-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 15px;
   margin-bottom: 20px;
 }
+
 .post-card {
   border: 1px solid #ccc;
   padding: 15px;
@@ -170,49 +177,37 @@
   text-align: left;
   transition: box-shadow 0.3s ease;
 }
+
 .post-card:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
+
 .post-card h3 {
   font-size: 1.5rem;
   margin-bottom: 10px;
 }
+
 .post-meta {
   font-size: 0.9rem;
   color: #555;
   margin-bottom: 10px;
 }
+
 .post-meta .author {
   font-weight: bold;
 }
+
 .post-meta .category {
   font-style: italic;
 }
+
 .post-card p {
   font-size: 1rem;
-  color: #202124;
+  color: #343a40;
   margin-bottom: 15px;
 }
-/* plus de bouton "Lire l'article" */
 
-/* Conteneur pour le bouton "Voir tous les articles" */
 .all-posts-btn-container {
   text-align: center;
   margin-bottom: 20px;
-}
-
-/* Boutons génériques */
-.btn {
-  display: inline-block;
-  padding: 10px 20px;
-  border-radius: 4px;
-  text-decoration: none;
-  color: #fff;
-  transition: background 0.3s ease;
-}
-.btn.secondary-btn {
-  background-color: #34A853;
-}
-.btn.secondary-btn:hover {
-  background-color: #2c8e46;
 }

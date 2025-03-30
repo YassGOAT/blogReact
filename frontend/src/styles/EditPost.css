@@ -1,39 +1,50 @@
+/* src/styles/EditPost.css */
 .editpost-container {
-    padding: 20px;
-    max-width: 600px;
-    margin: 40px auto;
-  }
-  
-  .editpost-container h2 {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  
-  .editpost-container .error {
-    color: red;
-    text-align: center;
-  }
-  
-  .editpost-container .form-group {
-    margin-bottom: 15px;
-  }
-  
-  .editpost-container .input,
-  .editpost-container .textarea {
-    width: 100%;
-    padding: 8px;
-    font-size: 16px;
-  }
-  
-  .editpost-container .btn {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    background-color: #ffc107;
-    border: none;
-    color: #fff;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.editpost-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.editpost-container .error {
+  color: #dc3545;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.editpost-container .form-group {
+  margin-bottom: 15px;
+}
+
+.editpost-container .input,
+.editpost-container .textarea {
+  width: 100%;
+  padding: 8px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.editpost-container .btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background-color: #ffc107;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.editpost-container .btn:hover {
+  background-color: #e0a800;
+}

@@ -3,13 +3,15 @@
   max-width: 900px;
   margin: 0 auto;
   padding: 20px;
-  font-family: Arial, sans-serif;
+  font-family: 'Roboto', sans-serif;
+  background-color: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.error {
-  color: red;
+.account-container h1 {
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 
 /* Bannière */
@@ -18,108 +20,99 @@
   height: 200px;
   background-size: cover;
   background-position: center;
-  background-repeat: no-repeat;
-  position: relative;
-  border-radius: 5px;
+  border-radius: 4px;
   margin-bottom: 20px;
+  position: relative;
   overflow: hidden;
 }
+
 .banner-controls {
   position: absolute;
   bottom: 10px;
   left: 10px;
   background-color: rgba(0,0,0,0.5);
   padding: 10px;
-  border-radius: 5px;
+  border-radius: 4px;
 }
+
 .banner-btn-group {
   margin-top: 10px;
   display: flex;
   gap: 10px;
 }
 
-/* Section supérieure : Photo de profil + Infos */
+/* Section supérieure */
 .account-top-section {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
   margin-bottom: 20px;
   background-color: #f8f9fa;
-  border-radius: 5px;
+  border-radius: 4px;
   padding: 15px;
 }
+
 .account-photo-section {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
+
 .profile-picture {
   width: 120px;
   height: 120px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #ccc;
+  margin-bottom: 10px;
 }
+
 .account-photo-actions {
-  margin-top: 10px;
   text-align: center;
 }
+
 .photo-btn-group {
   margin-top: 10px;
   display: flex;
   gap: 10px;
 }
+
 .account-info-section {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
+
 .account-info-section p {
   margin: 5px 0;
 }
 
-/* Boutons */
-.btn {
-  padding: 6px 10px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.save-btn {
-  background-color: #28a745;
-  color: #fff;
-}
-.delete-btn {
-  background-color: #dc3545;
-  color: #fff;
-}
-
-/* Onglets */
 .account-tabs {
   display: flex;
   gap: 10px;
   justify-content: center;
   margin-bottom: 20px;
 }
+
 .account-tabs button {
   padding: 10px 20px;
   border: none;
   background-color: #ddd;
+  border-radius: 4px;
   cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.2s;
+  transition: background 0.3s ease;
 }
+
 .account-tabs button.active {
   background-color: #007bff;
   color: #fff;
 }
 
-/* Contenu des onglets */
 .tab-content {
   border: 1px solid #ddd;
   padding: 20px;
-  border-radius: 5px;
+  border-radius: 4px;
 }
 
 /* Recherche */
@@ -127,53 +120,11 @@
   margin-bottom: 10px;
   text-align: center;
 }
+
 .search-input {
   width: 100%;
   max-width: 300px;
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
-}
-
-/* Favoris */
-.favorites-list {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-}
-.favorite-item {
-  display: flex;
-  align-items: center;
-  background-color: #fff;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 8px;
-  width: 200px;
-  justify-content: space-between;
-}
-.favorite-link {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  color: #333;
-  flex: 1;
-}
-.favorite-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-right: 8px;
-}
-.favorite-username {
-  font-weight: bold;
-}
-.favorite-remove-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  color: #ffc107;
 }

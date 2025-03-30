@@ -3,7 +3,10 @@
   max-width: 600px;
   margin: 0 auto;
   padding: 20px;
-  font-family: Arial, sans-serif;
+  font-family: 'Roboto', sans-serif;
+  background-color: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .user-header {
@@ -20,9 +23,12 @@
   margin-right: 15px;
 }
 
-.favorite-toggle-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 24px;
+.userprofile-container h2 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.userprofile-container p {
+  margin: 5px 0;
+  font-size: 1rem;
 }

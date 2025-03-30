@@ -10,7 +10,6 @@ function Account() {
   const [activeTab, setActiveTab] = useState('posts');
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredPosts, setFilteredPosts] = useState([]);
-  const [favorites, setFavorites] = useState([]);
   const location = useLocation();
 
   // États pour photo de profil et bannière
@@ -19,16 +18,14 @@ function Account() {
   const DEFAULT_PROFILE_IMAGE = 'http://localhost:8081/uploads/default-profile.jpg';
   const DEFAULT_BANNER_IMAGE = 'http://localhost:8081/uploads/default-banner.jpg';
 
-  // Gestion de l'onglet depuis l'URL
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tab = params.get('tab');
-    if (tab === 'posts' || tab === 'comments' || tab === 'favorites') {
+    if (tab === 'posts' || tab === 'comments') {
       setActiveTab(tab);
     }
   }, [location.search]);
 
-  // Récupération des infos du compte
   const fetchAccount = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -53,7 +50,6 @@ function Account() {
     fetchAccount();
   }, []);
 
-  // Filtrer les posts
   useEffect(() => {
     if (accountData && accountData.posts) {
       const term = searchTerm.toLowerCase();
@@ -63,30 +59,6 @@ function Account() {
       setFilteredPosts(filtered);
     }
   }, [searchTerm, accountData]);
-
-  // Récupérer les favoris lorsque l'onglet Favoris est actif
-  const fetchFavorites = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:8081/favorites', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || 'Erreur lors de la récupération des favoris.');
-      } else {
-        setFavorites(data);
-      }
-    } catch (err) {
-      setError('Erreur réseau lors de la récupération des favoris.');
-    }
-  };
-
-  useEffect(() => {
-    if (activeTab === 'favorites') {
-      fetchFavorites();
-    }
-  }, [activeTab]);
 
   // Mettre à jour la photo de profil
   const handleProfilePicUpdate = async () => {
@@ -101,7 +73,7 @@ function Account() {
         },
         body: JSON.stringify({
           profile_picture: profilePic,
-          banner_image: accountData.profile.banner_image // ne pas modifier ici la bannière
+          banner_image: accountData.profile.banner_image
         })
       });
       const data = await res.json();
@@ -116,12 +88,10 @@ function Account() {
     }
   };
 
-  // Supprimer la photo de profil
   const handleDeleteProfilePic = () => {
     setProfilePic(DEFAULT_PROFILE_IMAGE);
   };
 
-  // Mettre à jour la bannière
   const handleBannerUpdate = async () => {
     if (!accountData) return;
     const token = localStorage.getItem('token');
@@ -149,28 +119,8 @@ function Account() {
     }
   };
 
-  // Supprimer la bannière
   const handleDeleteBanner = () => {
     setBannerPic(DEFAULT_BANNER_IMAGE);
-  };
-
-  // Retirer un favori
-  const handleRemoveFavorite = async (favoriteId) => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:8081/favorites/${favoriteId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        alert(data.error || 'Erreur lors de la suppression du favori.');
-      } else {
-        setFavorites(prev => prev.filter(fav => fav.id !== favoriteId));
-      }
-    } catch (err) {
-      alert('Erreur réseau lors de la suppression du favori.');
-    }
   };
 
   if (error) {
@@ -225,7 +175,7 @@ function Account() {
         </div>
       </div>
 
-      {/* Onglets */}
+      {/* Onglets (Posts, Commentaires) */}
       <div className="account-tabs">
         <button
           className={activeTab === 'posts' ? 'active' : ''}
@@ -238,12 +188,6 @@ function Account() {
           onClick={() => setActiveTab('comments')}
         >
           Mes Commentaires
-        </button>
-        <button
-          className={activeTab === 'favorites' ? 'active' : ''}
-          onClick={() => setActiveTab('favorites')}
-        >
-          Mes Favoris
         </button>
       </div>
 
@@ -289,37 +233,6 @@ function Account() {
                   <Link to={`/posts/${comment.post_id}`}>
                     {comment.content}
                   </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
-
-      {activeTab === 'favorites' && (
-        <div className="tab-content">
-          <h3>Mes Favoris</h3>
-          {favorites.length === 0 ? (
-            <p>Aucun favori ajouté.</p>
-          ) : (
-            <ul className="favorites-list">
-              {favorites.map(fav => (
-                <li key={fav.id} className="favorite-item">
-                  <Link to={`/users/${fav.favorite_user_id}`} className="favorite-link">
-                    <img
-                      src={fav.profile_picture || DEFAULT_PROFILE_IMAGE}
-                      alt={fav.username}
-                      className="favorite-avatar"
-                    />
-                    <span className="favorite-username">{fav.username}</span>
-                  </Link>
-                  <button 
-                    onClick={() => handleRemoveFavorite(fav.id)} 
-                    className="favorite-remove-btn" 
-                    title="Retirer des favoris"
-                  >
-                    <i className="fa fa-star" style={{ color: '#ffc107' }}></i>
-                  </button>
                 </li>
               ))}
             </ul>
