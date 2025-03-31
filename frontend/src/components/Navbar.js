@@ -104,33 +104,33 @@ function Navbar() {
       </div>
       <div className="center-section">
         <div className="logo">
-          <Link to="/">Mon Blog</Link>
+          <Link to="/">PostFlow</Link>
         </div>
       </div>
       <div className="right-section">
         <div className="menu">
-          <Link to="/">Home</Link>
-          <Link to="/posts">Posts</Link>
+          <Link to="/">Accueil</Link>
+          <Link to="/posts">Articles</Link>
           <Link to="/categories">Categories</Link>
-          <Link to="/add-post" className="create-post-btn">Créer un Post</Link>
+          <Link to="/add-post" className="create-post-btn">Créer un article</Link>
           {loggedUser ? (
             <div className="user-dropdown">
               <span className="username" onClick={() => setShowDropdown(prev => !prev)}>
-                Bonjour, {loggedUser.username}
+                Salut, {loggedUser.username}
               </span>
               {showDropdown && (
                 <div className="dropdown-menu" ref={dropdownRef}>
-                  <Link to="/account" className="dropdown-item">Voir profil</Link>
-                  <Link to="/account?tab=posts" className="dropdown-item">Voir posts</Link>
-                  <Link to="/account?tab=comments" className="dropdown-item">Voir commentaires</Link>
-                  <Link to="#" className="dropdown-item" onClick={handleLogout}>Déconnexion</Link>
+                  <Link to="/account" className="dropdown-item">Voir le profil</Link>
+                  <Link to="/account?tab=posts" className="dropdown-item">Voir les articles</Link>
+                  <Link to="/account?tab=comments" className="dropdown-item">Voir les commentaires</Link>
+                  <Link to="#" className="dropdown-item" onClick={handleLogout}>Se déconnecter</Link>
                 </div>
               )}
             </div>
           ) : (
             <>
-              <Link to="/login">Login</Link>
-              <Link to="/register">Register</Link>
+              <Link to="/login">Se connecter</Link>
+              <Link to="/register">S'inscrire</Link>
             </>
           )}
         </div>

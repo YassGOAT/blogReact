@@ -48,7 +48,6 @@ function UserProfile() {
       </div>
       <p><strong>Email :</strong> {user.email}</p>
       <p><strong>Bio :</strong> {user.bio}</p>
-      <p><strong>Rôle :</strong> {user.role}</p>
     </div>
   );
 }

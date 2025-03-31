@@ -45,7 +45,7 @@ function Home() {
       {/* Section Hero */}
       <section className="hero">
         <div className="hero-content">
-          <h1>Bienvenue sur Mon Blog</h1>
+          <h1>Bienvenue sur PostFlow</h1>
           <p>Découvrez des articles passionnants et inspirez-vous chaque jour.</p>
           <Link to="/posts" className="btn cta">Explorer les articles</Link>
         </div>
@@ -55,7 +55,7 @@ function Home() {
       <section className="about-section">
         <h2>À propos</h2>
         <p>
-          Ce blog est dédié à partager des idées, des réflexions et des inspirations. 
+          Ce site est dédié à partager des idées, des réflexions et des inspirations. 
           Plongez dans un univers de contenus variés et profitez d’une expérience unique.
         </p>
         {/* Bouton éventuel vers une page "À propos" plus détaillée */}
@@ -73,7 +73,7 @@ function Home() {
           )}
           <div className="categories-carousel">
             {visibleCategories.length === 0 ? (
-              <p>Aucune catégorie disponible.</p>
+              <p>Aucun catégorie disponible.</p>
             ) : (
               visibleCategories.map((cat) => (
                 <div key={cat.id} className="category-card">

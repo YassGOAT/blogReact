@@ -181,7 +181,7 @@ function Account() {
           className={activeTab === 'posts' ? 'active' : ''}
           onClick={() => setActiveTab('posts')}
         >
-          Mes Posts
+          Mes Articles
         </button>
         <button
           className={activeTab === 'comments' ? 'active' : ''}
@@ -194,8 +194,8 @@ function Account() {
       {/* Contenu des onglets */}
       {activeTab === 'posts' && (
         <div className="tab-content">
-          <h3>Mes Posts</h3>
-          <p>Nombre total de posts : {posts.length}</p>
+          <h3>Mes articles</h3>
+          <p>Nombre total d'articles : {posts.length}</p>
           <div className="search-container">
             <input
               type="text"
@@ -206,7 +206,7 @@ function Account() {
             />
           </div>
           {filteredPosts.length === 0 ? (
-            <p>Aucun post trouvé.</p>
+            <p>Aucun article trouvé.</p>
           ) : (
             <ul>
               {filteredPosts.map((post) => (

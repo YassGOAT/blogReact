@@ -4,7 +4,7 @@ import '../styles/Footer.css';
 function Footer() {
   return (
     <footer className="footer">
-      <p>© {new Date().getFullYear()} Mon Blog. Tous droits réservés.</p>
+      <p>© {new Date().getFullYear()} PostFlow. Tous droits réservés.</p>
     </footer>
   );
 }

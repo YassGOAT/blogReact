@@ -301,6 +301,122 @@ app.delete('/posts/:id', verifyToken, (req, res) => {
 });
 
 // -------------------
+// CATEGORIES ENDPOINTS
+// -------------------
+
+// Endpoint pour uploader une image de catégorie
+app.post('/upload/category-image', verifyToken, upload.single('image'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+  res.json({ message: 'Category image uploaded successfully', imageUrl });
+});
+
+// GET /categories : Retourne toutes les catégories (utilisé dans Home, Catégories, et dans le formulaire de création d'un post)
+app.get('/categories', (req, res) => {
+  const query = 'SELECT * FROM categories ORDER BY name ASC';
+  db.query(query, (err, results) => {
+    if (err) return res.status(500).json({ error: 'Erreur lors de la récupération des catégories.' });
+    res.json(results);
+  });
+});
+
+// POST /categories : Crée une nouvelle catégorie (seulement admin ou superadmin)
+app.post('/categories', verifyToken, (req, res) => {
+  const { name, image_url } = req.body;
+  if (!name) {
+    return res.status(400).json({ error: 'Le nom de la catégorie est requis.' });
+  }
+  // Vérifier si l'utilisateur connecté est admin/superadmin
+  const userId = req.user.id;
+  const userQuery = 'SELECT role FROM users WHERE id = ?';
+  db.query(userQuery, [userId], (err, results) => {
+    if (err) return res.status(500).json({ error: err });
+    if (results.length === 0) return res.status(404).json({ error: 'User not found' });
+    const role = results[0].role.toLowerCase();
+    if (role !== 'admin' && role !== 'superadmin') {
+      return res.status(403).json({ error: 'Not authorized to create category' });
+    }
+    const insertQuery = 'INSERT INTO categories (name, image_url) VALUES (?, ?)';
+    db.query(insertQuery, [name, image_url || ''], (err2, result) => {
+      if (err2) return res.status(500).json({ error: 'Erreur lors de la création de la catégorie.' });
+      res.json({ message: 'Catégorie créée avec succès', categoryId: result.insertId });
+    });
+  });
+});
+
+// GET /categories/:id : Retourne une catégorie précise
+app.get('/categories/:id', (req, res) => {
+  const categoryId = req.params.id;
+  const query = 'SELECT * FROM categories WHERE id = ?';
+  db.query(query, [categoryId], (err, results) => {
+    if (err) return res.status(500).json({ error: err });
+    if (results.length === 0) return res.status(404).json({ error: 'Category not found' });
+    res.json(results[0]);
+  });
+});
+
+// PUT /categories/:id : Mise à jour d'une catégorie (seulement admin/superadmin)
+app.put('/categories/:id', verifyToken, (req, res) => {
+  const categoryId = req.params.id;
+  const { name, image_url } = req.body;
+  const userId = req.user.id;
+  const userQuery = 'SELECT role FROM users WHERE id = ?';
+  db.query(userQuery, [userId], (err, results) => {
+    if (err) return res.status(500).json({ error: err });
+    if (results.length === 0) return res.status(404).json({ error: 'User not found' });
+    const role = results[0].role.toLowerCase();
+    if (role !== 'admin' && role !== 'superadmin') {
+      return res.status(403).json({ error: 'Not authorized to update category' });
+    }
+    const updateQuery = 'UPDATE categories SET name = ?, image_url = ? WHERE id = ?';
+    db.query(updateQuery, [name, image_url || '', categoryId], (err2, result) => {
+      if (err2) return res.status(500).json({ error: err2 });
+      res.json({ message: 'Category updated successfully' });
+    });
+  });
+});
+
+// DELETE /categories/:id : Suppression d'une catégorie (seulement admin/superadmin)
+app.delete('/categories/:id', verifyToken, (req, res) => {
+  const categoryId = req.params.id;
+  const userId = req.user.id;
+  const userQuery = 'SELECT role FROM users WHERE id = ?';
+  db.query(userQuery, [userId], (err, results) => {
+    if (err) return res.status(500).json({ error: err });
+    if (results.length === 0) return res.status(404).json({ error: 'User not found' });
+    const role = results[0].role.toLowerCase();
+    if (role !== 'admin' && role !== 'superadmin') {
+      return res.status(403).json({ error: 'Not authorized to delete category' });
+    }
+    const deleteQuery = 'DELETE FROM categories WHERE id = ?';
+    db.query(deleteQuery, [categoryId], (err2, result) => {
+      if (err2) return res.status(500).json({ error: err2 });
+      res.json({ message: 'Category deleted successfully' });
+    });
+  });
+});
+
+// GET /categories/:id/posts : Retourne les posts liés à une catégorie (optionnel)
+app.get('/categories/:id/posts', (req, res) => {
+  const categoryId = req.params.id;
+  const query = `
+    SELECT p.id, p.title, p.content, p.user_id, p.image_url, p.created_at, p.updated_at,
+           u.username, c.name AS category
+    FROM posts p
+    LEFT JOIN users u ON p.user_id = u.id
+    LEFT JOIN posts_categories pc ON p.id = pc.post_id
+    LEFT JOIN categories c ON pc.category_id = c.id
+    WHERE pc.category_id = ?
+    ORDER BY p.created_at DESC
+  `;
+  db.query(query, [categoryId], (err, results) => {
+    if (err) return res.status(500).json({ error: err });
+    res.json(results);
+  });
+});
+
+
+// -------------------
 // COMMENTS ENDPOINTS
 // -------------------
 app.post('/comments', verifyToken, (req, res) => {
